@@ -12,4 +12,13 @@ code {
     monospace;
 }
 
+.tools_active {
+	border: 1px solid red;
+}
 
+.tools_not_active {
+	border: none;
+}
+.tools_not_active:hover {
+	border: 1px solid blue;
+}
