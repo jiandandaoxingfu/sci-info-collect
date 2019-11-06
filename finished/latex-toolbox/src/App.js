@@ -9,17 +9,17 @@ const ButtonGroup = Button.Group;
 (function() {
   document.getElementsByTagName('head')[0].innerHTML += `
     <script type="text/x-mathjax-config">
-            MathJax.Hub.Config({
+        MathJax.Hub.Config({
             messageStyle: 'none',
             tex2jax: {inlineMath: [['$','$']], preview: 'none'},
-            "HTML-CSS": 
-              {scale: 100},
-            TeX: { equationNumbers: { autoNumber: "AMS" }}});
-        </script>
+            jax: ["input/TeX", "output/SVG"],
+            TeX: { equationNumbers: { autoNumber: "AMS" }}
+        });
+    </script>
   `
   var script = document.createElement('script');
   script.setAttribute('type', "text/javascript");
-  script.setAttribute('src', "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML");
+  script.setAttribute('src', "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=default");
   document.getElementsByTagName('head')[0].appendChild(script);
 })();
 

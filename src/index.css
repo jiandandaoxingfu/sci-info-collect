@@ -15,21 +15,24 @@ code {
 /* antd 组件的样式在此处无效 */
 
 .tools_active {
-	border: 1px solid white;
+	  border: 1px solid white;
+    background: gray;
 }
 
 .tools_not_active {
-	border: none;
+	  border: none;
+    stroke: white;
 }
 
 .tools_not_active:hover {
-	border: 1px solid rgba(255, 255, 255, 0.7);
+	  border: 1px solid rgba(255, 255, 255, 0.7);
 }
 
 .tools_not_active, .tools_active {
-	width: 30px;
+	  width: 30px;
     height: 30px;
     display: block;
     margin: 30px auto;
     border-radius: 10%;
+    stroke: 
 }
