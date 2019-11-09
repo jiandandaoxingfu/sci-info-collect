@@ -1,4 +1,4 @@
-import Graph from './Graph.js';
+import { Graph, Rect, Circ, Line } from './Graph.js';
 
 class Canvas {
 	constructor(canvas, width, height) {
@@ -8,15 +8,17 @@ class Canvas {
 		this.scale = 1;
 		this.translate = {x: 0, y: 0};
 		this.shape = 'move';
-		this.currentEle = null;
+		this.currentEle = {obj: null};
 		this.isDrawing = false;
+		this.isMove = false;
+		this.click_pos = {x: 0, y: 0};
 	}
 
 	drawAxis() {
 		let g = window.document.createElementNS('http://www.w3.org/2000/svg','g');
 		g.setAttribute('id', 'axis');
-		let line1 = createLine(0, this.height/2, this.width, this.height/2, 'black', 1);
-		let line2 = createLine(this.width/2, 0, this.width/2, this.height, 'black', 1);
+		let line1 = new Graph('line', {x1: 0, y1: this.height/2, x2: this.width, y2: this.height/2}).setAttributes().obj;
+		let line2 = new Graph('line', {x1: this.width/2, y1: 0, x2: this.width/2, y2: this.height}).setAttributes().obj;
 		g.appendChild(line1);
 		g.appendChild(line2);
 		this.canvas.appendChild(g);
@@ -30,8 +32,8 @@ class Canvas {
 		for(let i=0; i<this.width / (2*x_step); i++) {
 			let x1 = this.width/2 + i*x_step;
 			let x2 = this.width/2 - i*x_step;
-			let line1 = createLine(x1, 0, x1, this.height, 'rgba(0, 0, 0, 0.1)', 1);
-			let line2 = createLine(x2, 0, x2, this.height, 'rgba(0, 0, 0, 0.1)', 1);
+			let line1 = new Graph('line', {x1: x1, y1: 0, x2: x1, y2: this.height, stroke: 'rgba(0, 0, 0, 0.1)'}).setAttributes().obj;;
+			let line2 = new Graph('line', {x1: x2, y1: 0, x2: x2, y2: this.height, stroke: 'rgba(0, 0, 0, 0.1)'}).setAttributes().obj;;
 			g.appendChild(line2);
 			g.appendChild(line1);
 		}
@@ -39,8 +41,8 @@ class Canvas {
 		for(let i=0; i<this.height / (2*y_step); i++) {
 			let y1 = this.height/2 + i*y_step;
 			let y2 = this.height/2 - i*y_step;
-			let line1 = createLine(0, y1, this.width, y1, 'rgba(0, 0, 0, 0.1)', 1);
-			let line2 = createLine(0, y2, this.width, y2, 'rgba(0, 0, 0, 0.1)', 1);
+			let line1 = new Graph('line', {x1: 0, y1: y1, x2: this.width, y2: y1, stroke: 'rgba(0, 0, 0, 0.1)'}).setAttributes().obj;;
+			let line2 = new Graph('line', {x1: 0, y1: y2, x2: this.width, y2: y2, stroke: 'rgba(0, 0, 0, 0.1)'}).setAttributes().obj;;
 			g.appendChild(line1);
 			g.appendChild(line2);
 		}
@@ -48,7 +50,7 @@ class Canvas {
 	}
 
 	createRect(x, y) {
-		return new Graph('rect', {x: x, y: y, height: 0, width: 0, fill: 'white', 'fill-opacity': 0}).update();
+		return new Graph('rect', {class: 'editable', x: x, y: y, height: 0, width: 0, fill: 'white', 'fill-opacity': 0, isTransform: true}).setAttributes();
 	}
 
 	createTriangle() {
@@ -56,31 +58,40 @@ class Canvas {
 	}
 
 	createCircle(x, y) {
-		return new Graph('ellipse', {cx: x, cy: y, rx: 0, ry: 0, fill: 'white', 'fill-opacity': 0}).update();
+		return new Graph('ellipse', {class: 'editable', cx: x, cy: y, rx: 0, ry: 0, fill: 'white', 'fill-opacity': 0, isTransform: true}).setAttributes();
 	}
 
 	createVector(x, y) {
-		return new Graph('vector', {}).update();
+		return new Graph('vector', {}).setAttributes();
 	}
 
 	createLine(x, y) {
-		return new Graph('line', {x1: x, y1: y, x2: x, y2: y}).update();
+		return new Graph('line', {class: 'editable', x1: x, y1: y, x2: x, y2: y, isTransform: true}).setAttributes();
 	}
 
-	createText(x, y, text) {
-
+	addText(text) {
+		let g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+		let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+		rect.setAttribute('width', text.getAttribute('width'));
+		rect.setAttribute('height', text.getAttribute('height'));
+		rect.setAttribute('viewBox', text.getAttribute('viewBox'));
+		rect.setAttribute('fill-opacity', 0);
+		rect.setAttribute('class', 'textRect');
+		g.appendChild(text);
+		g.appendChild(rect);
+		g.style.transform = `translate(${this.click_pos.x}px, ${this.click_pos.y}px)`;
+		g.setAttribute('class', 'text');
+		this.canvas.appendChild(g);
 	}
 
-	add(obj) {
-		this.canvas.appendChild(obj);
-	}
-
-	mousedown(e) {
+	mousedown(e, action) {
+		this.shape = action;
 		let rect = this.canvas.getBoundingClientRect();
-		let clickX = (e.clientX - rect.x) * this.scale;
-		let clickY = (e.clientY - rect.y) * this.scale;
+		let clickX = ( (e.clientX - rect.x) * this.scale ).toFixed(0);
+		let clickY = ( (e.clientY - rect.y) * this.scale ).toFixed(0);
+		this.click_pos = {x: clickX, y: clickY};
 		let graph = null;
-		switch(this.shape) { 
+		switch( action ) { 
 			case 'move':
 				return;
 			case 'rect':
@@ -100,7 +111,7 @@ class Canvas {
 				break;
 		}
 		if( graph ) {
-			this.add(graph.obj);
+			this.canvas.appendChild(graph.obj);
 			this.currentEle = graph;
 			this.isDrawing = true;
 		};
@@ -108,47 +119,37 @@ class Canvas {
 	mousemove(e) {
 		let graph = this.currentEle;
 		let rect = this.canvas.getBoundingClientRect();
-		let clickX = (e.clientX - rect.x) * this.scale;
-		let clickY = (e.clientY - rect.y) * this.scale;
+		let clickX = parseInt( (e.clientX - rect.x) * this.scale );
+		let clickY = parseInt( (e.clientY - rect.y) * this.scale );
 		let attr;
 		switch(this.shape) { 
 			case 'rect':
 				attr = { width: clickX - graph.attributes.x, height: clickY - graph.attributes.y };
-				if( attr.width < 0 || attr.height <0 ) return;
-				graph.update( attr );
+				if( attr.width <= 0 || attr.height <= 0 ) return;
 				break;
 			case 'circ':
 				attr = { rx: clickX - graph.attributes.cx, ry: clickY - graph.attributes.cy };
-				if( attr.rx < 0 || attr.ry <0 ) return;
-				graph.update( attr );
+				if( attr.rx <= 0 || attr.ry <= 0 ) return;
 				break;
 			case 'vect':
-				graph.update( { width: clickX - graph.attributes.x, height: clickY - graph.attributes.y } );
+				graph.setAttributes( { width: clickX - graph.attributes.x, height: clickY - graph.attributes.y } );
 				break;
 			case 'line':
-				graph.update( { x2: clickX, y2: clickY } );
+				attr = { x2: clickX, y2: clickY };
 				break;
-			case 'text':
-				break;
+		}
+		if( attr ) {
+			graph.setAttributes( attr );
+			this.isMove = true;
 		}
 	}
 
 	mouseup(e) {
+		if( !this.isMove ) this.canvas.removeChild(this.currentEle.obj);
 		this.isDrawing = false;
+		this.isMove = false;
 	}
 
-
-
-}
-
-function createLine(x1, y1, x2, y2, stroke, stroke_width) {
-	let line = window.document.createElementNS('http://www.w3.org/2000/svg','line');
-	line.setAttribute('x1', x1);
-	line.setAttribute('y1', y1);
-	line.setAttribute('x2', x2);
-	line.setAttribute('y2', y2);
-	line.setAttribute('style', `stroke: ${stroke}; stroke-width: ${stroke_width};`);
-	return line;
 }
 
 export default Canvas;

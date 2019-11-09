@@ -36,3 +36,14 @@ code {
     border-radius: 10%;
     stroke: 
 }
+
+line.editable, ellipse, rect {
+  cursor: pointer;
+}
+
+line.editable:hover {
+  transform: scale(2.5);
+}
+text {
+  user-select: none;
+}

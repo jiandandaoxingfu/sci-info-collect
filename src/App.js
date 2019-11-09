@@ -8,8 +8,10 @@ import './App.css';
 import Wheel from './Wheel.js';
 import Canvas from './Canvas.js';
 import Drag from './Drag.js';
+import Editor from './Editor.js';
+import styles from './styles.js';
 
-import { Button, Layout, Input, Card } from 'antd';
+import { Button, Layout, Input } from 'antd';
 const { Header, Content, Footer, Sider } = Layout;
 const InputGroup = Input.Group;
 const ButtonGroup = Button.Group;
@@ -31,7 +33,6 @@ const ButtonGroup = Button.Group;
   script.setAttribute('src', "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=default");
   document.getElementsByTagName('head')[0].appendChild(script);
 })();
-
 
 export default () => { 
     return (
@@ -67,7 +68,10 @@ export default () => {
                         <div id='textPanel' style={ styles.textPanel }>
 							<textarea id='inputMath' style={ styles.inputMath } onInput={ renderer } placeholder="输入...(支持行内公式)"></textarea>
 							<div id="showMath" style={ styles.showMath }></div>
-							<div style={ styles.addText }><Button size="small" onClick={ addText }>添加</Button></div>
+							<div style={ styles.addText }>
+                                <Button size="small">添加</Button>
+                                <Button size="small">取消</Button>
+                            </div>
                         </div>
                     </Content>
 
@@ -82,117 +86,27 @@ export default () => {
     );
 }
 
-const styles = {
-    layout: {
-        position: 'absolute',
-        height: '100%',
-        width: '100%'
-    },
-    header: {
-        height: '40px',
-        lineHeight: '20px',
-        textAlign: 'center',
-        padding: '7.5px',
-        borderBottom: '1px solid #3b3f41'
-    },
-    subLayout: {
-        height: '100%',
-    },
-    subContent: {
-        backgroundColor: '#3b3f41',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        overflow: 'hidden',
-    },
-    leftSider: {
-        textAlign: 'center',
-        backgroundColor: 'black'
-    },
-    rightSider: {
-        backgroundColor: 'black'
-    },
-    footer: {
-        height:  '35px',
-        padding: '10px 0',
-        textAlign: 'center',
-        lineHeight: '15px',
-        fontSize: '15px',
-        backgroundColor: 'black',
-        color: 'gray',
-        borderTop: '1px solid #3b3f41'
-    },
-
-    button: {
-        fontSize: '12px',
-        height: '20px',
-        borderRadius: '2px',
-        marginLeft: '3px',
-        color: 'white',
-    },
-    svg: {
-        width: '800px',
-        height: '500px',
-        backgroundColor: 'white',
-        transformOrigin: 'center',
-        transform: 'scale(1) translate(0, 0)',
-    },
-
-    textPanel: {
-    	position: 'absolute',
-    	height: '240px',
-    	width: '320px',
-    	margin: 'auto',
-    	padding: '10px',
-    	background: 'white',
-    	borderRadius: '10px',
-    	border: '1px solid black',
-    	display: 'none',
-    },
-    inputMath: {
-    	width: '300px',
-    	height: '84px',
-    	border: 'none',
-    	outline: 'none',
-    	padding: '10px',
-    	borderBottom: '1px solid gray',
-    },	
-    showMath: {
-    	width: '300px',
-    	height: '85px',
-    	padding: '10px',
-    	borderBottom: '1px solid gray',
-    },
-    addText: {
-    	marginTop: '10px',
-    	textAlign: 'center',
-    }
-
-};
 
 var highlight_border = () => {
     let e = window.event.target;
-    if( e.className == 'tools_active' ) return;
+    if( e.tagName.toLowerCase() === 'path') e = e.parentNode;
+    if( e.getAttribute('class') === 'tools_active' ) return;
     let tools_active = document.getElementsByClassName('tools_active')[0];
     tools_active.setAttribute('class', 'tools_not_active');
     e.setAttribute('class', 'tools_active');
+    action = e.getAttribute('id');
 }
 
 var renderer = () => {
-	$$('showMath').innerText = $$('inputMath').value;
+	$$('showMath').innerText = '$' + $$('inputMath').value + '$';
 	window.MathJax.Hub.Queue(['Typeset', window.MathJax.Hub, $$('showMath')]);
-}
-
-var addText = () => {
-	console.log($$('showMath').innerHTML);
-	document.getElementById('textPanel').style.display = 'none';
 }
 
 var scale = 1;
 //上下滚动时的具体处理函数
 function wheel_handle( delta, ele ) {
     delta = delta > 0 ? 0.1 : -0.1;
-	if( ele.parentNode.getAttribute('id') === 'painter' ) ele = ele.parentNode;
+	if( ele.parentNode.tagName && ele.parentNode.getAttribute('id') === 'painter' ) ele = ele.parentNode;
     if( ele.getAttribute('id') === 'painter' ) {
         let transform = ele.style.transform;
         scale = parseFloat( transform.replace(/.*?scale\((.*?)\).*/, '$1') ) + delta;
@@ -204,8 +118,12 @@ function wheel_handle( delta, ele ) {
 }
 
 new Wheel(wheel_handle).register();
-var canvas = new Canvas(null, 0, 0);
-var drager = new Drag(null);
+var canvas;
+var drager;
+var editor;
+var ismousedown = false;
+var ismousemove = false;
+var action = 'move';
 
 var $$ = (id) => {
     return document.getElementById(id);
@@ -216,66 +134,100 @@ window.onload = () => {
     canvas = new Canvas($$('painter'), 800, 500);
     canvas.drawAxis();
     canvas.drawGrid();
-}
+    editor = new Editor($$('painter'));
+    drager = new Drag();
 
-
-document.addEventListener('mousedown', (e) => {
-	let ele = e.target;
-	if( ele.style.transform ) {
-		if( !drager || drager.ele !== ele ) drager = new Drag(ele);
-		drager.ele = ele;
-		drager.mousedown(e);
-	}
-	if( ele.getAttribute('id') === 'painter' || ele.parentNode.getAttribute('id') === 'painter' ) canvas.mousedown(e);
-})
-
-document.addEventListener('mousemove', (e) => {
-	if( drager ) drager.mousemove(e);
-	if( canvas.isDrawing ) canvas.mousemove(e);
-})
-
-document.addEventListener('mouseup', (e) => {
-	canvas.mouseup();
-	drager.mouseup();
-})
-
-document.addEventListener('mouseover', (e) => {
-	let ele = e.target;
-	if( ele.style && ele.style.transform && canvas.shape === 'move' ) {
-		ele.setAttribute('stroke-width', "5");
-	}
-})
-
-document.addEventListener('mouseout', (e) => {
-	let ele = e.target;
-	if( ele.style && ele.style.transform ) {
-		ele.setAttribute('stroke-width', "2");
-	}
-})
-
-document.addEventListener('click', (e) => {
-    let ele = e.target;
-    let tagName = ele.tagName.toLowerCase();
-    if( tagName == 'button' ) {
-        let action = ele.innerText;
-        switch( action ) {
-            case '清除':
-                break;
-            case '复位':
-            	canvas.canvas.style.transform = canvas.canvas.style.transform.replace(/translate\(.*?\)/, 'translate(0px, 0px)');
-                break;
-            case '导出':
-                break;
-            case '坐标轴':
-                $$('axis').style.display = $$('axis').style.display == 'none' ? 'block' : 'none';
-                break;
-            case '网格':
-                $$('grid').style.display = $$('grid').style.display == 'none' ? 'block' : 'none';
-                break;
+    document.addEventListener('mousedown', (e) => {
+        ismousedown = true;
+        let ele = e.target;
+        let className = ele.getAttribute('class');
+        let id = ele.getAttribute('id');
+        if (className === 'editable' || id === 'painter' ) {
+            if (action === 'move') {
+                drager.ele = ele;
+                drager.mousedown(e);
+            } else if (['rect', 'circ', 'line', 'text'].includes(action)) {
+                canvas.mousedown(e, action);
+            }
+        } else if (className === 'block') {
+            editor.mousedown(e);
         }
-    }
-    if( tagName == 'svg' ) {
-        if( ele.parentNode.title ) canvas.shape = ele.id;
-    }
-})
 
+        if( className === 'textRect' && action === 'move' ) {
+                drager.ele = ele.parentNode;
+                drager.mousedown(e);
+        }
+
+        if (className !== 'block' && editor.isEditing) {
+            editor.unedit();
+        }
+    })
+
+    document.addEventListener('mousemove', (e) => {
+        ismousemove = ismousedown;
+        if (drager.ele) { 
+            drager.mousemove(e);
+        } else if (canvas.isDrawing) {
+            canvas.mousemove(e);
+        }
+    })
+
+    document.addEventListener('mouseup', (e) => {
+        let ele = e.target;
+        let tagName = ele.tagName.toLowerCase();
+        let className = ele.getAttribute('class');
+        if (tagName == 'button') {
+            let action = ele.innerText.replace(/\s/g, '');
+            switch (action) {
+                case '清除':
+                    break;
+                case '复位':
+                    canvas.canvas.style.transform = canvas.canvas.style.transform.replace(/translate\(.*?\)/, 'translate(0px, 0px)');
+                    break;
+                case '导出':
+                    break;
+                case '坐标轴':
+                    $$('axis').style.display = $$('axis').style.display == 'none' ? 'block' : 'none';
+                    break;
+                case '网格':
+                    $$('grid').style.display = $$('grid').style.display == 'none' ? 'block' : 'none';
+                    break;
+                case '添加':
+                case '取消':
+                    if( action == '添加' && $$('inputMath').value !== '' ) {
+                        let text = $$('showMath').getElementsByTagName('svg')[0];
+                        canvas.addText(text);
+                    }
+                    document.getElementById('textPanel').style.display = 'none';
+                    document.getElementById('inputMath').value = '';
+                    document.getElementById('showMath').innerHTML = '';
+                    break;
+            }
+            return;
+        } else if( action === 'move' && className === 'editable' && !ismousemove ) {
+            editor.createEditor(ele);
+        }
+
+        if( drager.ele ) drager.mouseup();
+        if( canvas.isDrawing ) canvas.mouseup();
+
+        ismousedown = false;
+        if (ismousemove) {
+            ismousemove = false;
+        }
+    })
+
+    document.addEventListener('click', (e) => {
+        
+
+        // if (tagName == 'svg' && ele.parentNode.title) {
+        //     canvas.shape = ele.id;
+        //     return;
+        // }
+
+        // if (className === 'editable' && canvas.shape == 'move') {
+        //     if (canvas.editor) canvas.unedit();
+        //     canvas.edit(e);
+        // }
+    })
+}
