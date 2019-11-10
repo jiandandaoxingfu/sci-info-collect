@@ -10,6 +10,7 @@ class Graph {
             this.attributes = attributes;
         } else {
             this.obj = obj;
+            this.attributes = {};
         }
     }
 
@@ -22,10 +23,12 @@ class Graph {
         return this;
     }
 
-    getAttributes() {
-        for( let attr in this.attributes ) {
-            this.attributes[attr] = this.obj.getAttribute(attr);
+    getAttributes( attributes ) {
+        let attrs = {};
+        for( let attr of attributes ) {
+            attrs[attr] = this.obj.getAttribute(attr) || this.obj.style[attr];
         }
+        return attrs;
     }
 }
 
@@ -100,7 +103,8 @@ class Line extends Graph {
             y: Math.min(y1, y2),
             width: Math.abs(x2 - x1),
             height: Math.abs(y2 - y1),
-            transform: this.obj.style.transform
+            transform: this.obj.style.transform,
+            isRT: y2 - y1 > 0,
         }
         return this.box;
     }

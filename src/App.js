@@ -66,11 +66,11 @@ export default () => {
                     <Content style={ styles.subContent }>
                         <svg id='painter' xmlns="http://www.w3.org/2000/svg" style={ styles.svg } viewBox="0 0 800 500"></svg>
                         <div id='textPanel' style={ styles.textPanel }>
-							<textarea id='inputMath' style={ styles.inputMath } onInput={ renderer } placeholder="输入...(支持行内公式)"></textarea>
+							<textarea id='inputMath' style={ styles.inputMath } onInput={ renderer } placeholder="输入tex数学表达式(可以包含文字)...         如： \sin(x)是三角函数"></textarea>
 							<div id="showMath" style={ styles.showMath }></div>
 							<div style={ styles.addText }>
-                                <Button size="small">添加</Button>
-                                <Button size="small">取消</Button>
+                                <Button size="small" style={ {margin: '10px'} }>添加</Button>
+                                <Button size="small" style={ {margin: '10px'} }>取消</Button>
                             </div>
                         </div>
                     </Content>
@@ -111,6 +111,8 @@ function wheel_handle( delta, ele ) {
         let transform = ele.style.transform;
         scale = parseFloat( transform.replace(/.*?scale\((.*?)\).*/, '$1') ) + delta;
         drager.scale = scale;
+        canvas.scale = scale;
+        editor.scale = scale;
         if( scale < 0.3 || scale > 3 ) return;
         transform = transform.replace( /(.*?scale\().*?(\).*?)/, '$1' + scale + '$2' );
         ele.style.transform = transform;
@@ -158,17 +160,22 @@ window.onload = () => {
                 drager.mousedown(e);
         }
 
-        if (className !== 'block' && editor.isEditing) {
+        if ( className !== 'block' && editor.editEle ) {
             editor.unedit();
         }
     })
 
     document.addEventListener('mousemove', (e) => {
+        let ele = e.target;
         ismousemove = ismousedown;
+        if( !ismousedown ) return;
         if (drager.ele) { 
             drager.mousemove(e);
         } else if (canvas.isDrawing) {
             canvas.mousemove(e);
+        } else if( editor.isClick ) {
+            editor.isEditing = true;
+            editor.mousemove(e);
         }
     })
 
@@ -196,20 +203,23 @@ window.onload = () => {
                 case '取消':
                     if( action == '添加' && $$('inputMath').value !== '' ) {
                         let text = $$('showMath').getElementsByTagName('svg')[0];
-                        canvas.addText(text);
+                        for ( let s of document.getElementsByTagName('script') ) {
+                            if( s.type == 'math/tex' ) var textCode = s.innerText;
+                        }
+                        canvas.addText(text, textCode);
                     }
                     document.getElementById('textPanel').style.display = 'none';
                     document.getElementById('inputMath').value = '';
                     document.getElementById('showMath').innerHTML = '';
                     break;
             }
-            return;
         } else if( action === 'move' && className === 'editable' && !ismousemove ) {
             editor.createEditor(ele);
         }
 
         if( drager.ele ) drager.mouseup();
         if( canvas.isDrawing ) canvas.mouseup();
+        if( editor.isClick ) editor.mouseup();
 
         ismousedown = false;
         if (ismousemove) {

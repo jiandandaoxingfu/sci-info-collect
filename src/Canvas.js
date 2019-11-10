@@ -1,5 +1,6 @@
 import { Graph, Rect, Circ, Line } from './Graph.js';
 
+
 class Canvas {
 	constructor(canvas, width, height) {
 		this.canvas = canvas;
@@ -11,7 +12,7 @@ class Canvas {
 		this.currentEle = {obj: null};
 		this.isDrawing = false;
 		this.isMove = false;
-		this.click_pos = {x: 0, y: 0};
+		this.start_pos = {x: 0, y: 0};
 	}
 
 	drawAxis() {
@@ -69,7 +70,7 @@ class Canvas {
 		return new Graph('line', {class: 'editable', x1: x, y1: y, x2: x, y2: y, isTransform: true}).setAttributes();
 	}
 
-	addText(text) {
+	addText(text, texCode) {
 		let g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 		let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
 		rect.setAttribute('width', text.getAttribute('width'));
@@ -77,9 +78,10 @@ class Canvas {
 		rect.setAttribute('viewBox', text.getAttribute('viewBox'));
 		rect.setAttribute('fill-opacity', 0);
 		rect.setAttribute('class', 'textRect');
+		rect.setAttribute('name', texCode);
 		g.appendChild(text);
 		g.appendChild(rect);
-		g.style.transform = `translate(${this.click_pos.x}px, ${this.click_pos.y}px)`;
+		g.style.transform = `translate(${this.start_pos.x}px, ${this.start_pos.y}px)`;
 		g.setAttribute('class', 'text');
 		this.canvas.appendChild(g);
 	}
@@ -87,9 +89,9 @@ class Canvas {
 	mousedown(e, action) {
 		this.shape = action;
 		let rect = this.canvas.getBoundingClientRect();
-		let clickX = ( (e.clientX - rect.x) * this.scale ).toFixed(0);
-		let clickY = ( (e.clientY - rect.y) * this.scale ).toFixed(0);
-		this.click_pos = {x: clickX, y: clickY};
+		let clickX = parseInt( (e.clientX - rect.x) * this.scale );
+		let clickY = parseInt( (e.clientY - rect.y) * this.scale );
+		this.start_pos = {x: clickX, y: clickY};
 		let graph = null;
 		switch( action ) { 
 			case 'move':
@@ -119,23 +121,23 @@ class Canvas {
 	mousemove(e) {
 		let graph = this.currentEle;
 		let rect = this.canvas.getBoundingClientRect();
-		let clickX = parseInt( (e.clientX - rect.x) * this.scale );
-		let clickY = parseInt( (e.clientY - rect.y) * this.scale );
+		let mouseX = parseInt( (e.clientX - rect.x) * this.scale );
+		let mouseY = parseInt( (e.clientY - rect.y) * this.scale );
 		let attr;
 		switch(this.shape) { 
 			case 'rect':
-				attr = { width: clickX - graph.attributes.x, height: clickY - graph.attributes.y };
+				attr = { width: mouseX - graph.attributes.x, height: mouseY - graph.attributes.y };
 				if( attr.width <= 0 || attr.height <= 0 ) return;
 				break;
 			case 'circ':
-				attr = { rx: clickX - graph.attributes.cx, ry: clickY - graph.attributes.cy };
+				attr = { rx: mouseX - graph.attributes.cx, ry: mouseY - graph.attributes.cy };
 				if( attr.rx <= 0 || attr.ry <= 0 ) return;
 				break;
 			case 'vect':
-				graph.setAttributes( { width: clickX - graph.attributes.x, height: clickY - graph.attributes.y } );
+				graph.setAttributes( { width: mouseX - graph.attributes.x, height: mouseY - graph.attributes.y } );
 				break;
 			case 'line':
-				attr = { x2: clickX, y2: clickY };
+				attr = { x2: mouseX, y2: mouseY };
 				break;
 		}
 		if( attr ) {

@@ -41,6 +41,10 @@ line.editable, ellipse, rect {
   cursor: pointer;
 }
 
+ellipse.block:hover {
+  cursor: nwse-resize;
+}
+
 line.editable:hover {
   transform: scale(2.5);
 }

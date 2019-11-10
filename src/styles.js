@@ -83,7 +83,6 @@ const styles = {
     	marginTop: '10px',
     	textAlign: 'center',
     }
-
 };
 
 export default styles;
