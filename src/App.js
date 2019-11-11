@@ -218,7 +218,7 @@ window.onload = () => {
                 case '复位':
                     canvas.scale = 1;
                     editor.scale = 1;
-                    drag.scale = 1;
+                    drager.scale = 1;
                     canvas.canvas.style.transform = canvas.canvas.style.transform.replace(/translate\(.*?\)/, 'translate(0px, 0px)');
                     canvas.canvas.style.transform = canvas.canvas.style.transform.replace(/scale\(.*?\)/, 'scale(1)');
                     break;
