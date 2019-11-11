@@ -73,7 +73,11 @@ class Editor {
 						this.editEle.setAttributes({rx: width/2, ry: height/2, cx: width/2 + x, cy: height/2 + y });
 						break;
 					case 'line':
-						// this.editEle.setAttributes({x1: , y1: , x2: , y2: });
+						if( this.editEle.k < 0 ) {
+							this.editEle.setAttributes({x1: x, y1: y + height, x2: x + width, y2: y});
+						} else {
+							this.editEle.setAttributes({x1: x, y1: y, x2: x + width, y2: y + height});
+						}
 						break;
 				}
 			}
@@ -87,13 +91,17 @@ class Editor {
 				this.editor.rect.setAttributes({height: height, width: width});
 				switch( this.editEle.obj.tagName.toLowerCase() ) {
 					case 'rect':
-						this.editEle.setAttributes({x: x, y: y, height: height, width: width});
+						this.editEle.setAttributes({height: height, width: width});
 						break;
 					case 'ellipse':
 						this.editEle.setAttributes({rx: width/2, ry: height/2, cx: x - width/2, cy: y - height/2 });
 						break;
 					case 'line':
-						// this.editEle.setAttributes({x1: , y1: , x2: , y2: });
+						if( this.editEle.k < 0 ) {
+							this.editEle.setAttributes({x1: x, y1: y - height, x2: x - width, y2: y});
+						} else {
+							this.editEle.setAttributes({x1: x, y1: y, x2: x - width, y2: y - height});
+						}
 						break;
 				}
 			}

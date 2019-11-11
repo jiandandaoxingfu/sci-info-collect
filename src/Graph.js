@@ -91,6 +91,12 @@ class Vector extends Graph {
 class Line extends Graph {
     constructor(obj) {
         super(null, null, obj);
+
+        let x1 = parseFloat(  obj.getAttribute('x1') ),
+            x2 = parseFloat(  obj.getAttribute('x2') ),                    
+            y1 = parseFloat(  obj.getAttribute('y1') ),                    
+            y2 = parseFloat(  obj.getAttribute('y2') );                    
+        this.k = (y1 - y2) / (x1 - x2);
     }
 
     getBox() {
