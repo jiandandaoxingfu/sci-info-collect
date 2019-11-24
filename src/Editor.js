@@ -40,6 +40,7 @@ class Editor {
 		g.appendChild(circle_left_top.obj);
 		g.appendChild(circle_right_bottom.obj);
 		g.setAttribute('style', `transform: ${transform}`);
+		g.setAttribute('id', 'editor');
 		this.canvas.appendChild(g);		
 		this.editor = {g: g, rect: rect, circle_lt: circle_left_top, circle_rb: circle_right_bottom};
 	}
@@ -55,8 +56,8 @@ class Editor {
 		let { x, y, width, height } = box;
 		let id = e.target.getAttribute('id');
 		let rect = this.canvas.getBoundingClientRect();
-		let moveX = parseInt( ( e.clientX - this.start_pos.x ) / this.scale );
-		let moveY = parseInt( ( e.clientY - this.start_pos.y ) / this.scale );
+		let moveX = parseInt( ( e.clientX - this.start_pos.x ) / this.scale ) + 0.01;
+		let moveY = parseInt( ( e.clientY - this.start_pos.y ) / this.scale ) + 0.01;
 		x += moveX;
 		y += moveY;
 		if( this.blockId == 'lt' ) {

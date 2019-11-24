@@ -13,6 +13,7 @@ class Canvas {
 		this.isDrawing = false;
 		this.isMove = false;
 		this.start_pos = {x: 0, y: 0};
+		this.canvasRect = canvas.getBoundingClientRect();
 	}
 
 	drawAxis() {
@@ -26,15 +27,15 @@ class Canvas {
 	}
 
 	drawGrid() {
-		let x_step = 30;
-		let y_step = 30;
+		let x_step = 15;
+		let y_step = 15;
 		let g = window.document.createElementNS('http://www.w3.org/2000/svg','g');
 		g.setAttribute('id', 'grid');
 		for(let i=0; i<this.width / (2*x_step); i++) {
 			let x1 = this.width/2 + i*x_step;
 			let x2 = this.width/2 - i*x_step;
-			let line1 = new Graph('line', {x1: x1, y1: 0, x2: x1, y2: this.height, stroke: 'rgba(0, 0, 0, 0.1)'}).setAttributes().obj;;
-			let line2 = new Graph('line', {x1: x2, y1: 0, x2: x2, y2: this.height, stroke: 'rgba(0, 0, 0, 0.1)'}).setAttributes().obj;;
+			let line1 = new Graph('line', {x1: x1, y1: 0, x2: x1, y2: this.height, stroke: 'rgba(0, 0, 0, 0.3)', 'stroke-width': 0.5}).setAttributes().obj;;
+			let line2 = new Graph('line', {x1: x2, y1: 0, x2: x2, y2: this.height, stroke: 'rgba(0, 0, 0, 0.3)', 'stroke-width': 0.5}).setAttributes().obj;;
 			g.appendChild(line2);
 			g.appendChild(line1);
 		}
@@ -42,8 +43,8 @@ class Canvas {
 		for(let i=0; i<this.height / (2*y_step); i++) {
 			let y1 = this.height/2 + i*y_step;
 			let y2 = this.height/2 - i*y_step;
-			let line1 = new Graph('line', {x1: 0, y1: y1, x2: this.width, y2: y1, stroke: 'rgba(0, 0, 0, 0.1)'}).setAttributes().obj;;
-			let line2 = new Graph('line', {x1: 0, y1: y2, x2: this.width, y2: y2, stroke: 'rgba(0, 0, 0, 0.1)'}).setAttributes().obj;;
+			let line1 = new Graph('line', {x1: 0, y1: y1, x2: this.width, y2: y1, stroke: 'rgba(0, 0, 0, 0.3)', 'stroke-width': 0.5}).setAttributes().obj;;
+			let line2 = new Graph('line', {x1: 0, y1: y2, x2: this.width, y2: y2, stroke: 'rgba(0, 0, 0, 0.3)', 'stroke-width': 0.5}).setAttributes().obj;;
 			g.appendChild(line1);
 			g.appendChild(line2);
 		}
@@ -89,8 +90,8 @@ class Canvas {
 	mousedown(e, action) {
 		this.shape = action;
 		let rect = this.canvas.getBoundingClientRect();
-		let clickX = parseInt( (e.clientX - rect.x) * this.scale );
-		let clickY = parseInt( (e.clientY - rect.y) * this.scale );
+		let clickX = parseInt( (e.clientX - rect.x) / this.scale );
+		let clickY = parseInt( (e.clientY - rect.y) / this.scale );
 		this.start_pos = {x: clickX, y: clickY};
 		let graph = null;
 		switch( action ) { 
@@ -121,8 +122,8 @@ class Canvas {
 	mousemove(e) {
 		let graph = this.currentEle;
 		let rect = this.canvas.getBoundingClientRect();
-		let mouseX = parseInt( (e.clientX - rect.x) * this.scale );
-		let mouseY = parseInt( (e.clientY - rect.y) * this.scale );
+		let mouseX = parseInt( (e.clientX - rect.x) / this.scale );
+		let mouseY = parseInt( (e.clientY - rect.y) / this.scale );
 		let attr;
 		switch(this.shape) { 
 			case 'rect':

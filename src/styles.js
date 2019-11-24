@@ -47,7 +47,7 @@ const styles = {
         color: 'white',
     },
     svg: {
-        width: '800px',
+        width: '800',
         height: '500px',
         backgroundColor: 'white',
         transformOrigin: 'center',

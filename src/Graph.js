@@ -44,8 +44,9 @@ class Rect extends Graph {
             y: parseFloat(this.obj.getAttribute('y')),
             height: parseFloat(this.obj.getAttribute('height')),
             width: parseFloat(this.obj.getAttribute('width')),
-            transform: this.obj.style.transform
+            transform: this.obj.style.transform,
         }
+        this.box.center = {x: this.box.x + this.box.width/2, y: this.box.y + this.box.height/2};
         return this.box;
     }
 }
@@ -66,7 +67,8 @@ class Circ extends Graph {
             y: cy - ry,
             height: ry * 2,
             width: rx * 2,
-            transform: this.obj.style.transform
+            transform: this.obj.style.transform,
+            center: {x: cx, y: cy}
         }
         return this.box;
     }
@@ -110,6 +112,7 @@ class Line extends Graph {
             width: Math.abs(x2 - x1),
             height: Math.abs(y2 - y1),
             transform: this.obj.style.transform,
+            center: {x: (x1+x2)/2, y: (y1+y2)/2},
             isRT: y2 - y1 > 0,
         }
         return this.box;
