@@ -26,8 +26,8 @@ function show_subWindow() {
     electron.ipcRenderer.send('show_subWindow', true);
 }
 
-electron.ipcRenderer.on('search_title_from_main', (event, message) => {
-	console.log(message);
+electron.ipcRenderer.on('status', (event, message) => {
+    alert(message);
 });
 
 export default () => { 

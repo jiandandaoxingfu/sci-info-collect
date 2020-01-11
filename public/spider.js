@@ -3,7 +3,7 @@
 * @Email:              jiaminxin@outlook.com
 * @Date:               2020-01-10 18:08:54
 * @Last Modified by:   jiandandaoxingfu
-* @Last Modified time: 2020-01-11 18:08:08
+* @Last Modified time: 2020-01-11 19:50:10
 */
 
 const fs = require('fs')
@@ -36,13 +36,6 @@ class Crawl {
 		}).then( (res) => {
 			let data = res.data.replace(/&amp;/g, '&');
 			this.qid = data.match(/qid=(\d+)/)[1];
-			// this.detail_url = origin + data.match(/full_record.do\?.*?"/)[0];
-			// this.cite_url = origin + data.match(/CitingArticles.do\?.*?"/)[0];
-			// this.cite_num = data.match(/CitingArticles.do\?.*?>(\d+)/)[1];
-			// this.parentQid = this.cite_url.match(/parentQid=(\d+)/)[1];
-			// this.has_cite = parseInt(this.cite_num) === 0 ? false : true;
-			// console.log([this.detail_url, this.cite_url, this.cite_num, this.parentQid, this.has_cite]);
-			// console.log(this.qid);
 		})
 	}
 

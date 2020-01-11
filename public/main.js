@@ -2,7 +2,7 @@
  * @Author:       old jia
  * @Date:                2018-09-27 00:14:10
  * @Last Modified by:   jiandandaoxingfu
- * @Last Modified time: 2020-01-11 19:47:54
+ * @Last Modified time: 2020-01-11 20:06:26
  * @Email:               jiaminxin@outlook.com
  */
 
@@ -54,17 +54,12 @@ app.on('ready', function() {
 
 	subWindow.webContents.on('dom-ready', (event) => {
 		let url = subWindow.webContents.getURL();
-		console.log(url);
-		if( url.includes('baidu') ) {
+		if( url.includes('no_cite') ) {
 			page_type = 'no_cite';
-			mainWindow.webContents.executeJavaScript(`
-				alert('没有引用或者搜索结果不唯一');
-			`)
-		} else if( url.includes('sogou') ) {
+			ipcMain.send('status', 'no_cite');
+		} else if( url.includes('no_2018_cite') ) {
 			page_type = 'no_2018_cite';
-			mainWindow.webContents.executeJavaScript(`
-				alert('没有2018引用');
-			`)
+			ipcMain.send('status', 'no_2018_cite');
 		}
 
 		if( page_type === 'root' ) {
@@ -75,7 +70,7 @@ app.on('ready', function() {
 				let len = document.querySelectorAll('div.search-results-item').length;
 				let cite_item = document.querySelector('a.snowplow-times-cited-link');
 				if( len > 1 || !cite_item ) {
-					window.location.href = 'https://www.baidu.com';
+					window.location.href = 'https://www.baidu.com?error=no_cite';
 				} else {
 					cite_item.click();
 				}
@@ -94,46 +89,33 @@ app.on('ready', function() {
 						}
 					}
 				} else {
-					window.location.href = 'https://www.sogou.com';
+					window.location.href = 'https://www.baidu.com?error=no_2018_cite';
 				}
 			`)
 			page_type = 'refine';
 		} else if( page_type === 'refine' ) {
 			setTimeout(() => {
-				print2pdf(subWindow, crawl.title + '_cite_page.pdf');
-				console.log('cite_page_printed');	
+				print2pdf(subWindow, crawl.title + '_cite_page.pdf', () => {
+					ipcMain.send('status', 'cite_page_printed');
+				});
 			}, 500);
 			subWindow.loadURL(`http://apps.webofknowledge.com/OutboundService.do?action=go&displayCitedRefs=true&displayTimesCited=true&displayUsageInfo=true&viewType=summary&product=WOS&mark_id=WOS&colName=WOS&search_mode=GeneralSearch&locale=zh_CN&view_name=WOS-summary&sortBy=PY.D%3BLD.D%3BSO.A%3BVL.D%3BPG.A%3BAU.A&mode=outputService&qid=${crawl.qid}&SID=${crawl.sid}&format=formatForPrint&filters=HIGHLY_CITED+HOT_PAPER+OPEN_ACCESS+PMID+USAGEIND+AUTHORSIDENTIFIERS+ACCESSION_NUM+FUNDING+SUBJECT_CATEGORY+JCR_CATEGORY+LANG+IDS+PAGEC+SABBR+CITREFC+ISSN+PUBINFO+KEYWORDS+CITTIMES+ADDRS+CONFERENCE_SPONSORS+DOCTYPE+ABSTRACT+CONFERENCE_INFO+SOURCE+TITLE+AUTHORS++&selectedIds=1&mark_to=1&mark_from=1&queryNatural=${crawl.title}&count_new_items_marked=0&MaxDataSetLimit=&use_two_ets=false&DataSetsRemaining=&IsAtMaxLimit=&IncitesEntitled=yes&value(record_select_type)=pagerecords&markFrom=1&markTo=1&fields_selection=HIGHLY_CITED+HOT_PAPER+OPEN_ACCESS+PMID+USAGEIND+AUTHORSIDENTIFIERS+ACCESSION_NUM+FUNDING+SUBJECT_CATEGORY+JCR_CATEGORY+LANG+IDS+PAGEC+SABBR+CITREFC+ISSN+PUBINFO+KEYWORDS+CITTIMES+ADDRS+CONFERENCE_SPONSORS+DOCTYPE+ABSTRACT+CONFERENCE_INFO+SOURCE+TITLE+AUTHORS++&&&totalMarked=1`);
 			page_type = 'detail';
 		} else if( page_type === 'detail' ) {
 			setTimeout(() => {
-				print2pdf(subWindow, crawl.title + '_detail_page.pdf');
+				print2pdf(subWindow, crawl.title + '_detail_page.pdf', () => {
+					ipcMain.send('status', 'detail_page_printed');
+				});
 				console.log('detail_page_printed');
 			}, 500);
 			page_type = 'done';
 		}
 	})
 
-	// subWindow.on('did-frame-finish-load', () =>{
-	// 	console.log('finish-load: ' + page_type);
-	// 	if( page_type === 'refine' ) {
-	// 		// print2pdf(subWindow, crawl.title + '_cite_page.pdf');
-	// 		// console.log('cite_page_printed');
-	// 		subWindow.loadURL(`http://apps.webofknowledge.com/OutboundService.do?action=go&displayCitedRefs=true&displayTimesCited=true&displayUsageInfo=true&viewType=summary&product=WOS&mark_id=WOS&colName=WOS&search_mode=GeneralSearch&locale=zh_CN&view_name=WOS-summary&sortBy=PY.D%3BLD.D%3BSO.A%3BVL.D%3BPG.A%3BAU.A&mode=outputService&qid=${crawl.qid}&SID=${crawl.sid}&format=formatForPrint&filters=HIGHLY_CITED+HOT_PAPER+OPEN_ACCESS+PMID+USAGEIND+AUTHORSIDENTIFIERS+ACCESSION_NUM+FUNDING+SUBJECT_CATEGORY+JCR_CATEGORY+LANG+IDS+PAGEC+SABBR+CITREFC+ISSN+PUBINFO+KEYWORDS+CITTIMES+ADDRS+CONFERENCE_SPONSORS+DOCTYPE+ABSTRACT+CONFERENCE_INFO+SOURCE+TITLE+AUTHORS++&selectedIds=1&mark_to=1&mark_from=1&queryNatural=${crawl.title}&count_new_items_marked=0&MaxDataSetLimit=&use_two_ets=false&DataSetsRemaining=&IsAtMaxLimit=&IncitesEntitled=yes&value(record_select_type)=pagerecords&markFrom=1&markTo=1&fields_selection=HIGHLY_CITED+HOT_PAPER+OPEN_ACCESS+PMID+USAGEIND+AUTHORSIDENTIFIERS+ACCESSION_NUM+FUNDING+SUBJECT_CATEGORY+JCR_CATEGORY+LANG+IDS+PAGEC+SABBR+CITREFC+ISSN+PUBINFO+KEYWORDS+CITTIMES+ADDRS+CONFERENCE_SPONSORS+DOCTYPE+ABSTRACT+CONFERENCE_INFO+SOURCE+TITLE+AUTHORS++&&&totalMarked=1`);
-	// 		page_type = 'detail';
-	// 	} else if( page_type === 'detail' ) {
-	// 		// print2pdf(subWindow, crawl.title + '_detail_page.pdf');
-	// 		// console.log('detail_page_printed');
-	// 		page_type = 'done';
-	// 	}
-	// })
-
 	subWindow.on('closed', () => {
 		// 通常会把多个 window 对象存放在一个数组里面，
 		subWindow = null
 	})
-
-
 
 	ipcMain.on('search_title_2_main', (event, message) => {
 		if( !crawl.sid ) return;
