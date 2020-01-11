@@ -22,6 +22,10 @@ function send_title() {
 	});
 }
 
+function show_subWindow() {
+    electron.ipcRenderer.send('show_subWindow', true);
+}
+
 electron.ipcRenderer.on('search_title_from_main', (event, message) => {
 	console.log(message);
 });
@@ -30,9 +34,9 @@ export default () => {
     return (
         <Layout style = { styles.layout }>
             <Header style = { styles.header }>
-            	<Input placeholder="输入文章标题" style = { styles.input } onBlur= { send_title } id='title'/>
-            	<Button type='primary' style={ styles.button }>Default</Button>
-            	<Button type='primary' style={ styles.button }>哈哈</Button>
+            	<Input placeholder="输入文章标题" style = { styles.input } id='title'/>
+            	<Button type='primary' style={ styles.button } onClick={ send_title } >开始统计</Button>
+            	<Button type='primary' style={ styles.button } onClick={ show_subWindow } >显示后台</Button>
             	<Button type='primary' style={ styles.button }>返回主页</Button>
             </Header>
 			<Content> 
