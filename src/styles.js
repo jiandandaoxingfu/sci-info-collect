@@ -15,6 +15,17 @@ const styles = {
         width: '200px',
     },
 
+    title: {
+        width: '200px', 
+        height: '20px',
+        overflow: 'hidden',
+    },
+
+    table: {
+        height: '600px',
+        overflow: 'scroll',
+    },
+
     footer: {
         height:  '35px',
         padding: '10px 0',

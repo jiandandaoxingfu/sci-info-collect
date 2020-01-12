@@ -2,7 +2,7 @@
  * @Author:       old jia
  * @Date:                2018-09-27 00:14:10
  * @Last Modified by:   jiandandaoxingfu
- * @Last Modified time: 2020-01-11 21:18:30
+ * @Last Modified time: 2020-01-12 10:18:11
  * @Email:               jiaminxin@outlook.com
  */
 
@@ -15,7 +15,7 @@ const path = require('path')
 
 
 let mainWindow, subWindow, page_type, subWindow_is_show = false, reply;
-let crawl = new Crawl(2018);
+let crawl = new Crawl();
 
 
 app.on('ready', function() {
@@ -54,12 +54,12 @@ app.on('ready', function() {
 
 	subWindow.webContents.on('dom-ready', (event) => {
 		let url = subWindow.webContents.getURL();
-		if( url.includes('no_cite') ) {
-			page_type = 'no_cite';
-			reply('status', 'no_cite');
-		} else if( url.includes('no_2018_cite') ) {
-			page_type = 'no_2018_cite';
-			reply('status', 'no_2018_cite');
+		if( url.includes('cite_num') ) {
+			page_type = 'cite_num';
+			reply('status', 'cite_num');
+		} else if( url.includes('cite_num_2018') ) {
+			page_type = 'cite_num_2018';
+			reply('status', 'cite_num_2018');
 		} else if( url.includes('mutil') ) {
 			page_type = 'mutil';
 			reply('status', 'mutil');
@@ -75,7 +75,7 @@ app.on('ready', function() {
 				if( len > 1 ) {
 					window.location.href = 'https://www.baidu.com?error=mutil';	
 				} else if( !cite_item ) {
-					window.location.href = 'https://www.baidu.com?error=no_cite';
+					window.location.href = 'https://www.baidu.com?error=cite_num';
 				} else {
 					cite_item.click();
 				}
@@ -94,7 +94,7 @@ app.on('ready', function() {
 						}
 					}
 				} else {
-					window.location.href = 'https://www.baidu.com?error=no_2018_cite';
+					window.location.href = 'https://www.baidu.com?error=cite_num_2018';
 				}
 			`)
 			page_type = 'refine';
