@@ -2,7 +2,7 @@
  * @Author:       old jia
  * @Date:                2018-09-27 00:14:10
  * @Last Modified by:   jiandandaoxingfu
- * @Last Modified time: 2020-01-12 12:21:21
+ * @Last Modified time: 2020-01-12 13:35:43
  * @Email:               jiaminxin@outlook.com
  */
 
@@ -60,6 +60,9 @@ app.on('ready', function() {
 		} else if( url.includes('no_2018_cite') ) {
 			page_type = 'no_2018_cite';
 			reply('status', JSON.stringify({ msg: "no_2018_cite", data: "" }) );
+		} else if( url.includes('no_found') ) {
+			page_type = 'no_found';
+			reply('status', JSON.stringify({ msg: "no_found", data: "" }) );
 		} else if( url.includes('mutil') ) {
 			page_type = 'mutil';
 			reply('status', JSON.stringify({ msg: "mutil", data: "" }) );
@@ -74,9 +77,11 @@ app.on('ready', function() {
 				let cite_item = document.querySelector('a.snowplow-times-cited-link');
 				if( len > 1 ) {
 					window.location.href = 'https://www.baidu.com?error=mutil';	
-				} else if( !cite_item ) {
+				} else if( len === 1 && !cite_item ) {
 					window.location.href = 'https://www.baidu.com?error=no_cite';
-				} else {
+				} else if( len === 0 ){
+					window.location.href = 'https://www.baidu.com?error=no_found';
+				} else if( len === 1 && cite_item ){
 					cite_item.click();
 				}
 			`)
@@ -144,8 +149,8 @@ app.on('ready', function() {
 
 	});
 
-	ipcMain.on('restart_subWindow', (event, message) => {
-		// subWindow.
+	ipcMain.on('restart', (event, message) => {
+		mainWindow.reload();
 	})
 });
 

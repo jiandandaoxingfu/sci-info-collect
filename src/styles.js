@@ -15,12 +15,6 @@ const styles = {
         width: '200px',
     },
 
-    title: {
-        width: '200px', 
-        height: '20px',
-        overflow: 'hidden',
-    },
-
     table: {
         height: '600px',
         overflow: 'scroll',
@@ -43,11 +37,6 @@ const styles = {
         margin: '0 20px',
 
     },
-
-    iframe: {
-        height: '100%',
-        width: '100%',
-    }
    
 };
 

@@ -19,12 +19,12 @@ const columns = [
     title: '标题',
     dataIndex: 'title',
     key: 'title',
-    render: text => <div style={ styles.title } title={ text }>{ text }</div>,
+    render: text => <span title={ text }>{ text.slice(0, 30) + '...' }</span>,
   },
   {
     title: '搜索结果',
-    dataIndex: 'mutil',
-    key: 'mutil',
+    dataIndex: 'search_result',
+    key: 'search_result',
   },
   {
     title: '总引用量',
@@ -33,13 +33,13 @@ const columns = [
   },
   {
     title: '2018引用量',
-    dataIndex: 'cite_num_2018',
-    key: 'cite_num_2018',
+    dataIndex: 'cite_2018_num',
+    key: 'cite_2018_num',
   },
   {
     title: '2018引用文献列表',
-    dataIndex: 'cite_page_pirnted',
-    key: 'cite_page_pirnted',
+    dataIndex: 'cite_page_printed',
+    key: 'cite_page_printed',
   },
   {
     title: '详情页',
@@ -68,11 +68,11 @@ class App extends React.Component {
         this.setState({ data: [] });
         this.message_handle();
         let title_arr = document.getElementById('title').value.replace(/，/g, ',').split(',');
+        if( title_arr[0] === "" ) return;
         this.setState( { title_arr: title_arr }, () => {
             this.change_data();
         });
-        if( title_arr.length === 0 ) return;
-        electron.ipcRenderer.send('search_title_2_main', {
+         electron.ipcRenderer.send('search_title_2_main', {
             title: title_arr[0]
         });
     }
@@ -91,10 +91,10 @@ class App extends React.Component {
             data_.push({
                 key: id + 1, 
                 title: title, 
-                mutil: '',
+                search_result: '',
                 cite_num: '',
-                cite_num_2018: '',
-                cite_page_pirnted: '',
+                cite_2018_num: '',
+                cite_page_printed: '',
                 detail_page_printed: '',
             })  
         })
@@ -107,33 +107,39 @@ class App extends React.Component {
         electron.ipcRenderer.on('status', (event, message) => {
             let title_arr = this.state.title_arr;
             message = JSON.parse(message);
-            if( message.msg.includes('no_') || message.msg === 'mutil' || message.msg === 'detail_page_printed' ) {
-                let data = [...this.state.data];
-                if( message.msg === 'mutil' ) {
-                    data[this.state.current_id].mutil = '搜索结果不唯一';
-                } else if( message.msg === 'no_cite' ) {
-                    data[this.state.current_id].cite_num = 0;
-                } else if( message.msg === 'no_2018_cite' ) {
-                    data[this.state.current_id].cite_num_2018 = 0;
-                } else if( message.msg === 'cite_num' ) {
-                    data[this.state.current_id].cite_num = message.data;
-                } else if( message.msg === 'cite_num_2018' ) {
-                    data[this.state.current_id].cite_num_2018 = message.data;
-                } else if( message.msg === 'cite_page_pirnted' ) {
-                    data[this.state.current_id].cite_page_pirnted = '已打印';
-                } else if( message.msg === 'detail_page_printed' ) {
-                    data[this.state.current_id].detail_page_printed = '已打印';
-                }
-                this.setState({ current_id: this.state.current_id + 1, data: data }, () => {
-                    if( title_arr.length === this.state.current_id ) {
-                        alert('done');
-                    } else {
+            let data = [...this.state.data];
+            if( message.msg === 'mutil' ) {
+                data[this.state.current_id].search_result = '搜索结果不唯一';
+            } else if( message.msg === 'no_cite' ) {
+                data[this.state.current_id].cite_num = 0;
+            } else if( message.msg === 'no_2018_cite' ) {
+                data[this.state.current_id].cite_2018_num = 0;
+            } else if( message.msg === 'no_found' ) {
+                data[this.state.current_id].search_result = '没有找到';
+            } else if( message.msg === 'cite_num' ) {
+                data[this.state.current_id].cite_num = message.data;
+            } else if( message.msg === 'cite_2018_num' ) {
+                data[this.state.current_id].cite_2018_num = message.data;
+            } else if( message.msg === 'cite_page_printed' ) {
+                data[this.state.current_id].cite_page_printed = '已打印';
+            } else if( message.msg === 'detail_page_printed' ) {
+                data[this.state.current_id].detail_page_printed = '已打印';
+            }
+            
+            this.setState({ data: data }, () => {
+                if( title_arr.length - this.state.current_id === 1 ) {
+                    setTimeout(() => {
+                        alert('统计完成');
+                    }, 200);
+                } else if( message.msg.includes('no_') || message.msg === 'mutil' || message.msg === 'detail_page_printed' ) {
+                    this.setState({ current_id: this.state.current_id + 1 }, () => {
                         electron.ipcRenderer.send('search_title_2_main', {
                             title: title_arr[this.state.current_id]
                         });
-                    }
-                });
-            }
+                    })
+                    
+                }
+            });
         })
     }
 
