@@ -2,13 +2,13 @@
  * @Author:       old jia
  * @Date:                2018-09-27 00:14:10
  * @Last Modified by:   jiandandaoxingfu
- * @Last Modified time: 2020-01-12 17:16:29
+ * @Last Modified time: 2020-01-12 17:59:57
  * @Email:               jiaminxin@outlook.com
  */
 
 const { Crawl } = require('./spider.js');
 const { print2pdf } = require('./print.js');
-const {	app, BrowserWindow. webContents } = require('electron')
+const {	app, BrowserWindow, webContents } = require('electron')
 const {	Menu, MenuItem, dialog,	ipcMain } = require('electron')
 const {	appMenuTemplate } = require('./appmenu.js')
 const path = require('path')
@@ -65,6 +65,13 @@ app.on('ready', function() {
 		width: 1200,
 		height: 600,
 		show: false,
+		webPreferences: {
+        	javascript: true,
+        	plugins: true,
+        	nodeIntegration: false, // 不集成 Nodejs
+        	webSecurity: false,
+        	preload: path.join(__dirname, 'renderer.js') // 但预加载的 js 文件内仍可以使用 Nodejs 的 API
+    	}
 	})
 
 	subWindow.loadURL('http://apps.webofknowledge.com');
@@ -171,6 +178,10 @@ app.on('ready', function() {
 			subWindow.show();
 		}
 		subWindow_is_show = !subWindow_is_show;
+	});
+
+	ipcMain.on('subWindow_2_main', (event, message) => {
+		reply("from_subWindow", message);
 	});
 
 	ipcMain.on('restart', (event, message) => {

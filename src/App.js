@@ -6,13 +6,18 @@
 import React from 'react';
 import './App.css';
 import styles from './styles.js';
-import table from './table.js'
-import { Button, Layout, Input, Tooltip, Table, Divider } from 'antd';
+import { Button, Layout, Input, Table } from 'antd';
 
 const electron = window.electron;
 const { Header, Content, Footer } = Layout;
-const InputGroup = Input.Group;
-const ButtonGroup = Button.Group;
+
+electron.ipcRenderer.on('from_subWindow', (e, msg) => {
+    console.log(msg);
+})
+
+electron.ipcRenderer.on('subWindow_2_main', (e, msg) => {
+    console.log(msg);
+})
 
 const columns = [
   {
@@ -89,6 +94,7 @@ class App extends React.Component {
         electron.ipcRenderer.send('restart', true);
     }
     
+
     change_data = () => {
         let data_ = [...this.state.data];
         this.state.title_arr.map( (title, id) => {
