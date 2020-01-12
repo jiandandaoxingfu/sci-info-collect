@@ -3,7 +3,7 @@
 * @Email:              jiaminxin@outlook.com
 * @Date:               2020-01-10 18:08:54
 * @Last Modified by:   jiandandaoxingfu
-* @Last Modified time: 2020-01-12 16:46:24
+* @Last Modified time: 2020-01-12 20:38:40
 */
 
 const axios = require('axios');
@@ -25,17 +25,72 @@ class Crawl {
 	constructor() { 
 		this.qid = '';
 		this.authors = [];
+		this.win;
 	}
 
-	search_page(url) {
-		return axios({
-			url: url, 
-			headers: request_headers
-		}).then( (res) => {
-			let data = res.data.replace(/&amp;/g, '&');
-			this.qid = data.match(/qid=(\d+)/)[1];
-		})
+	get_search_status() {
+		this.win.webContents.executeJavaScript(`
+			let m = document.body.innerHTML.match(/qid=(\\d+)/);
+			let qid = m === null ? 0 : m[1];
+			let len = document.querySelectorAll('div.search-results-item').length;
+			let cite_item = document.querySelector('a.snowplow-times-cited-link');
+			let error;
+			if( len > 1 ) {
+				error = 'mutil';	
+			} else if( len === 1 && !cite_item ) {
+				error = 'no_cite';
+			} else if( len === 0 ){
+				error = 'no_found';
+			} else if( len === 1 && cite_item ){
+				error = cite_item.text;
+			}
+			window.electron.ipcRenderer.send("search_page_status", { error: error, qid: qid});
+		`)
 	}
+
+	get_cite_status() {
+		this.win.webContents.executeJavaScript(`
+			let has_2018 = document.getElementById('PublicationYear_tr').innerHTML.includes('PublicationYear_2018');
+			let error = 'no_2018_cite';
+			if( has_2018 ) {
+				let inputs = document.getElementById('PublicationYear_tr').getElementsByTagName('input');
+				for( let input of inputs ) {
+					if( input.value.includes("2018") ) {
+						input.click();
+						error = input.nextElementSibling.innerHTML.match(/\\((\\d+)\\)/)[1];
+					}
+				}
+			}
+			window.electron.ipcRenderer.send("cite_page_status", error);
+		`)
+	}
+
+	add_cite_tag(win) {
+		this.win.webContents.executeJavaScript(`
+			let self_cite_num = 0, other_cite_num = 0;
+			for( let div of document.querySelectorAll('div.search-results-item') ) {
+				let authors = [];
+				let as = div.querySelectorAll('a[alt="查找此作者的更多记录"]');
+				for( let a of as ) {
+					authors.push( a.innerHTML.replace(/(-|,|\\s|\\.)/g, '') );
+    			}
+				let author_union = new Set( [...authors, ...${JSON.stringify(this.author)} ] );
+				if( author_union.size === (authors.length + ${JSON.stringify(this.author)}.length) ) {
+					div.querySelector('div.search-results-data').innerHTML += '<div class="alum" style="color: red; font-size: 18px ">他引</div>';
+					other_cite_num += 1;
+				} else {
+					div.querySelector('div.search-results-data').innerHTML += '<div class="alum" style="color: red; font-size: 18px ">自引</div>';
+					self_cite_num += 1;
+				}
+			}
+			window.electron.ipcRenderer.send("cite_num", {
+				self_cite_num: self_cite_num,
+				other_cite_num: other_cite_num,
+			});
+		`)
+	}
+
+
 }
 
 exports.Crawl = Crawl;
