@@ -3,7 +3,7 @@
 * @Email:              jiaminxin@outlook.com
 * @Date:               2020-01-10 18:08:54
 * @Last Modified by:   jiandandaoxingfu
-* @Last Modified time: 2020-01-12 10:19:11
+* @Last Modified time: 2020-01-12 15:57:46
 */
 
 const axios = require('axios');
@@ -22,7 +22,10 @@ const request_headers = {
 
 
 class Crawl {
-	constructor() { }
+	constructor() { 
+		this.qid = '';
+		this.authors = [];
+	}
 
 	search_page(url) {
 		return axios({
@@ -31,7 +34,11 @@ class Crawl {
 		}).then( (res) => {
 			let data = res.data.replace(/&amp;/g, '&');
 			this.qid = data.match(/qid=(\d+)/)[1];
-			// this.cite_num = 
+			data.replace(/(\r\n|\n|\r)/g, '  ')
+				.match(/title="查找此作者.*?>(.*?)<\/a>/g)
+				.forEach( (d) => {
+					this.authors.push( d.match(/title="查找此作者.*?>(.*?)<\/a>/)[1] );
+				})
 		})
 	}
 }

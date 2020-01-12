@@ -2,7 +2,7 @@
  * @Author:       old jia
  * @Date:                2018-09-27 00:14:10
  * @Last Modified by:   jiandandaoxingfu
- * @Last Modified time: 2020-01-12 13:35:43
+ * @Last Modified time: 2020-01-12 16:39:38
  * @Email:               jiaminxin@outlook.com
  */
 
@@ -15,8 +15,27 @@ const path = require('path')
 
 
 let mainWindow, subWindow, page_type, subWindow_is_show = false, reply;
+let year, author;
 let crawl = new Crawl();
 
+function add_cite_tag() {
+	console.log(author)
+	subWindow.webContents.executeJavaScript(`
+		for( let div of document.querySelectorAll('div.search-results-item') ) {
+			let authors = [];
+			let as = div.querySelectorAll('a[alt="查找此作者的更多记录"]');
+			for( let a of as ) {
+				authors.push( a.innerHTML.replace(/(-|,|\\s|\\.)/g, '') );
+    		}
+			let author_union = new Set( [...authors, ...${JSON.stringify(author)} ] );
+			if( author_union.size === (authors.length + ${JSON.stringify(author)}.length) ) {
+				div.querySelector('div.search-results-data').innerHTML += '<div class="alum" style="color: red; font-size: 18px ">他引</div>';
+			} else {
+				div.querySelector('div.search-results-data').innerHTML += '<div class="alum" style="color: red; font-size: 18px ">自引</div>';
+			}
+		}
+	`)
+}
 
 app.on('ready', function() {
 	mainWindow = new BrowserWindow({
@@ -37,7 +56,7 @@ app.on('ready', function() {
 	// mainWindow.webContents.openDevTools({mode:'right'});
 	mainWindow.on('closed', () => {
 		// 通常会把多个 window 对象存放在一个数组里面，
-		mainWindow = null
+		app.quit()
 	})
 	const menu = Menu.buildFromTemplate(appMenuTemplate)
 	Menu.setApplicationMenu(menu);
@@ -104,13 +123,14 @@ app.on('ready', function() {
 			`)
 			page_type = 'refine';
 		} else if( page_type === 'refine' ) {
+			add_cite_tag();
 			setTimeout(() => {
 				print2pdf(subWindow, crawl.title + '_cite_page.pdf', () => {
 					reply('status', JSON.stringify({ msg: "cite_page_printed", data: "" }) );
 					page_type = 'detail';
 					subWindow.loadURL(`http://apps.webofknowledge.com/OutboundService.do?action=go&displayCitedRefs=true&displayTimesCited=true&displayUsageInfo=true&viewType=summary&product=WOS&mark_id=WOS&colName=WOS&search_mode=GeneralSearch&locale=zh_CN&view_name=WOS-summary&sortBy=PY.D%3BLD.D%3BSO.A%3BVL.D%3BPG.A%3BAU.A&mode=outputService&qid=${crawl.qid}&SID=${crawl.sid}&format=formatForPrint&filters=HIGHLY_CITED+HOT_PAPER+OPEN_ACCESS+PMID+USAGEIND+AUTHORSIDENTIFIERS+ACCESSION_NUM+FUNDING+SUBJECT_CATEGORY+JCR_CATEGORY+LANG+IDS+PAGEC+SABBR+CITREFC+ISSN+PUBINFO+KEYWORDS+CITTIMES+ADDRS+CONFERENCE_SPONSORS+DOCTYPE+ABSTRACT+CONFERENCE_INFO+SOURCE+TITLE+AUTHORS++&selectedIds=1&mark_to=1&mark_from=1&queryNatural=${crawl.title}&count_new_items_marked=0&MaxDataSetLimit=&use_two_ets=false&DataSetsRemaining=&IsAtMaxLimit=&IncitesEntitled=yes&value(record_select_type)=pagerecords&markFrom=1&markTo=1&fields_selection=HIGHLY_CITED+HOT_PAPER+OPEN_ACCESS+PMID+USAGEIND+AUTHORSIDENTIFIERS+ACCESSION_NUM+FUNDING+SUBJECT_CATEGORY+JCR_CATEGORY+LANG+IDS+PAGEC+SABBR+CITREFC+ISSN+PUBINFO+KEYWORDS+CITTIMES+ADDRS+CONFERENCE_SPONSORS+DOCTYPE+ABSTRACT+CONFERENCE_INFO+SOURCE+TITLE+AUTHORS++&&&totalMarked=1`);
 				});
-			}, 500);
+			}, 50000);
 		} else if( page_type === 'detail' ) {
 			setTimeout(() => {
 				print2pdf(subWindow, crawl.title + '_detail_page.pdf', () => {
@@ -124,7 +144,7 @@ app.on('ready', function() {
 
 	subWindow.on('closed', () => {
 		// 通常会把多个 window 对象存放在一个数组里面，
-		subWindow = null
+		app.quit()
 	})
 
 	ipcMain.on('search_title_2_main', (event, message) => {
@@ -139,6 +159,13 @@ app.on('ready', function() {
 
 	});
 
+	ipcMain.on('selection', (event, message) => {
+		year = message.year;
+		s = message.author;
+		s2 = s.split('-');
+		author = [s.replace(/-/g, ''), s2[0]+s2[1]+s2[2].toLocaleLowerCase(), s2[1]+s2[2]+s2[0], s2[1]+s2[2].toLocaleLowerCase()+s2[0], s2[0]+s2[1][0]+s2[2][0], s2[0]+s2[1][0]+s2[2][0].toLocaleLowerCase(), s2[1][0]+s2[2][0]+s2[0], s2[1][0]+s2[2][0].toLocaleLowerCase()+ s2[0] ];
+	});
+
 	ipcMain.on('show_subWindow', (event, message) => {
 		if( subWindow_is_show ) {
 			subWindow.hide()
@@ -151,6 +178,7 @@ app.on('ready', function() {
 
 	ipcMain.on('restart', (event, message) => {
 		mainWindow.reload();
+		subWindow.loadURL('https://www.baidu.com');
 	})
 });
 
@@ -159,5 +187,9 @@ app.on('window-all-closed', () => {
 		app.quit()
 	}
 })
+
+
+
+
 
 

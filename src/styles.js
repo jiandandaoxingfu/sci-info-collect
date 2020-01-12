@@ -10,9 +10,22 @@ const styles = {
         marginBottom: '2px solid rgba(0, 200, 130, 0.9)',
     },
 
-    input: {
+    input_title: {
         margin: '0, 30px',
-        width: '200px',
+        width: '250px',
+        marginRight: '25px',
+    },
+
+    input_year: {
+        margin: '0, 30px',
+        width: '100px',
+        marginRight: '25px',
+    },
+
+    input_author: {
+        margin: '0, 30px',
+        width: '180px',
+        marginRight: '25px',
     },
 
     table: {

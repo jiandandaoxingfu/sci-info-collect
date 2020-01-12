@@ -33,8 +33,8 @@ const columns = [
   },
   {
     title: '2018引用量',
-    dataIndex: 'cite_2018_num',
-    key: 'cite_2018_num',
+    dataIndex: 'cite_year_num',
+    key: 'cite_year_num',
   },
   {
     title: '2018引用文献列表',
@@ -72,8 +72,12 @@ class App extends React.Component {
         this.setState( { title_arr: title_arr }, () => {
             this.change_data();
         });
-         electron.ipcRenderer.send('search_title_2_main', {
-            title: title_arr[0]
+        electron.ipcRenderer.send('search_title_2_main', {
+            title: title_arr[0],
+        });
+        electron.ipcRenderer.send('selection', {
+            author: document.getElementById('author').value,
+            year: document.getElementById('year').value.replace(/，/g, ',').replace(/\s/g, '').split(','),
         });
     }
     
@@ -93,7 +97,7 @@ class App extends React.Component {
                 title: title, 
                 search_result: '',
                 cite_num: '',
-                cite_2018_num: '',
+                cite_year_num: '',
                 cite_page_printed: '',
                 detail_page_printed: '',
             })  
@@ -109,17 +113,17 @@ class App extends React.Component {
             message = JSON.parse(message);
             let data = [...this.state.data];
             if( message.msg === 'mutil' ) {
-                data[this.state.current_id].search_result = '搜索结果不唯一';
+                data[this.state.current_id].search_result = '不唯一';
             } else if( message.msg === 'no_cite' ) {
                 data[this.state.current_id].cite_num = 0;
             } else if( message.msg === 'no_2018_cite' ) {
-                data[this.state.current_id].cite_2018_num = 0;
+                data[this.state.current_id].cite_year_num = 0;
             } else if( message.msg === 'no_found' ) {
                 data[this.state.current_id].search_result = '没有找到';
             } else if( message.msg === 'cite_num' ) {
                 data[this.state.current_id].cite_num = message.data;
-            } else if( message.msg === 'cite_2018_num' ) {
-                data[this.state.current_id].cite_2018_num = message.data;
+            } else if( message.msg === 'cite_year_num' ) {
+                data[this.state.current_id].cite_year_num = message.data;
             } else if( message.msg === 'cite_page_printed' ) {
                 data[this.state.current_id].cite_page_printed = '已打印';
             } else if( message.msg === 'detail_page_printed' ) {
@@ -147,16 +151,18 @@ class App extends React.Component {
         return (
             <Layout style = { styles.layout }>
                 <Header style = { styles.header }>
-            	   <Input placeholder="输入文章标题" style = { styles.input } id='title'/>
-            	   <Button type='primary' style={ styles.button } onClick={ this.send_title } >开始统计</Button>
-            	   <Button type='primary' style={ styles.button } onClick={ this.show_subWindow } >显示后台</Button>
-            	   <Button type='primary' style={ styles.button } onClick={ this.restart }>重新启动</Button>
+            	    <Input placeholder="输入文章标题，多篇以逗号隔开" style = { styles.input_title } id='title'/>
+                    <Input placeholder="统计年份" style = { styles.input_year } id='year'/>
+                    <Input placeholder="作者姓名：如 Liu-Yi-Fei" style = { styles.input_author } id='author'/>
+            	    <Button type='primary' style={ styles.button } onClick={ this.send_title } >开始统计</Button>
+            	    <Button type='primary' style={ styles.button } onClick={ this.show_subWindow } >显示后台</Button>
+            	    <Button type='primary' style={ styles.button } onClick={ this.restart }>重新启动</Button>
                 </Header>
-			     <Content> 
+			    <Content> 
                     <Table columns={columns} dataSource={ this.state.data } style={ styles.table } pagination={ false }/>
                 </Content>
                 <Footer style = { styles.footer }>
-            		  ©2020 Created by JMx. <a href='https://github.com/jiandandaoxingfu'>github</a><br />
+            		©2020 Created by JMx. <a href='https://github.com/jiandandaoxingfu'>github</a><br />
                 </Footer>
 
             </Layout>
