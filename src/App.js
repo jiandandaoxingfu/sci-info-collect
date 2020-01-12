@@ -14,14 +14,17 @@ const { Header, Content, Footer } = Layout;
 const InputGroup = Input.Group;
 const ButtonGroup = Button.Group;
 
-var title_arr;
-
 const columns = [
   {
     title: '标题',
     dataIndex: 'title',
     key: 'title',
     render: text => <div style={ styles.title } title={ text }>{ text }</div>,
+  },
+  {
+    title: '搜索结果',
+    dataIndex: 'mutil',
+    key: 'mutil',
   },
   {
     title: '总引用量',
@@ -57,17 +60,21 @@ const columns = [
 class App extends React.Component {
     state = {
         data: [],
-        current_id: 1,
+        current_id: 0,
+        title_arr: [],
     }
 
     send_title = () => {
-        title_arr = document.getElementById('title').value.replace(/，/g, ',').split(',');
-        this.change_data()
+        this.setState({ data: [] });
+        this.message_handle();
+        let title_arr = document.getElementById('title').value.replace(/，/g, ',').split(',');
+        this.setState( { title_arr: title_arr }, () => {
+            this.change_data();
+        });
         if( title_arr.length === 0 ) return;
         electron.ipcRenderer.send('search_title_2_main', {
             title: title_arr[0]
         });
-        title_arr = title_arr.slice(1, 1000);
     }
     
     show_subWindow = () => {
@@ -80,10 +87,11 @@ class App extends React.Component {
     
     change_data = () => {
         let data_ = [...this.state.data];
-        title_arr.map( (title, id) => {
+        this.state.title_arr.map( (title, id) => {
             data_.push({
                 key: id + 1, 
                 title: title, 
+                mutil: '',
                 cite_num: '',
                 cite_num_2018: '',
                 cite_page_pirnted: '',
@@ -96,32 +104,36 @@ class App extends React.Component {
     }
 
     message_handle = () => {
-        // var this_ = this;
         electron.ipcRenderer.on('status', (event, message) => {
-            if( title_arr.length === 0 ) {
-                setTimeout( () => {
-                    alert('done');
-                }, 600);
-            } else if( message.msg.includes('no_') || message.msg === 'mutil' || message.msg === 'detail_page_printed' ) {
-                electron.ipcRenderer.send('search_title_2_main', {
-                    title_arr: title_arr[0]
+            let title_arr = this.state.title_arr;
+            message = JSON.parse(message);
+            if( message.msg.includes('no_') || message.msg === 'mutil' || message.msg === 'detail_page_printed' ) {
+                let data = [...this.state.data];
+                if( message.msg === 'mutil' ) {
+                    data[this.state.current_id].mutil = '搜索结果不唯一';
+                } else if( message.msg === 'no_cite' ) {
+                    data[this.state.current_id].cite_num = 0;
+                } else if( message.msg === 'no_2018_cite' ) {
+                    data[this.state.current_id].cite_num_2018 = 0;
+                } else if( message.msg === 'cite_num' ) {
+                    data[this.state.current_id].cite_num = message.data;
+                } else if( message.msg === 'cite_num_2018' ) {
+                    data[this.state.current_id].cite_num_2018 = message.data;
+                } else if( message.msg === 'cite_page_pirnted' ) {
+                    data[this.state.current_id].cite_page_pirnted = '已打印';
+                } else if( message.msg === 'detail_page_printed' ) {
+                    data[this.state.current_id].detail_page_printed = '已打印';
+                }
+                this.setState({ current_id: this.state.current_id + 1, data: data }, () => {
+                    if( title_arr.length === this.state.current_id ) {
+                        alert('done');
+                    } else {
+                        electron.ipcRenderer.send('search_title_2_main', {
+                            title: title_arr[this.state.current_id]
+                        });
+                    }
                 });
-                title_arr = title_arr.slice(1, 1000);
-                this.setState({ current_id: this.current_id + 1 });
             }
-            let data_ = [...this.state.data];
-            if( message.msg === 'mutil' ) {
-                data_[this.current_id].mutil = '搜索结果不唯一';
-            } else if( message.msg === 'cite_num' ) {
-                data_[this.current_id].cite_num = message.data;
-            } else if( message.msg === 'cite_num_2018' ) {
-                data_[this.current_id].cite_num_2018 = message.data;
-            } else if( message.msg === 'cite_page_pirnted' ) {
-                data_[this.current_id].cite_page_pirnted = '已打印';
-            } else if( message.msg === 'detail_page_printed' ) {
-                data_[this.current_id].detail_page_printed = '已打印';
-            }
-            this.setState( { data: data_ } );
         })
     }
 
@@ -134,12 +146,13 @@ class App extends React.Component {
             	   <Button type='primary' style={ styles.button } onClick={ this.show_subWindow } >显示后台</Button>
             	   <Button type='primary' style={ styles.button } onClick={ this.restart }>重新启动</Button>
                 </Header>
-			 <Content> 
+			     <Content> 
                     <Table columns={columns} dataSource={ this.state.data } style={ styles.table } pagination={ false }/>
                 </Content>
                 <Footer style = { styles.footer }>
             		  ©2020 Created by JMx. <a href='https://github.com/jiandandaoxingfu'>github</a><br />
                 </Footer>
+
             </Layout>
         );
     }
