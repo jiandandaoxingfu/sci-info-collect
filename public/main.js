@@ -2,7 +2,7 @@
  * @Author:       old jia
  * @Date:                2018-09-27 00:14:10
  * @Last Modified by:   jiandandaoxingfu
- * @Last Modified time: 2020-01-12 16:39:38
+ * @Last Modified time: 2020-01-12 16:41:07
  * @Email:               jiaminxin@outlook.com
  */
 
@@ -19,7 +19,6 @@ let year, author;
 let crawl = new Crawl();
 
 function add_cite_tag() {
-	console.log(author)
 	subWindow.webContents.executeJavaScript(`
 		for( let div of document.querySelectorAll('div.search-results-item') ) {
 			let authors = [];
@@ -130,7 +129,7 @@ app.on('ready', function() {
 					page_type = 'detail';
 					subWindow.loadURL(`http://apps.webofknowledge.com/OutboundService.do?action=go&displayCitedRefs=true&displayTimesCited=true&displayUsageInfo=true&viewType=summary&product=WOS&mark_id=WOS&colName=WOS&search_mode=GeneralSearch&locale=zh_CN&view_name=WOS-summary&sortBy=PY.D%3BLD.D%3BSO.A%3BVL.D%3BPG.A%3BAU.A&mode=outputService&qid=${crawl.qid}&SID=${crawl.sid}&format=formatForPrint&filters=HIGHLY_CITED+HOT_PAPER+OPEN_ACCESS+PMID+USAGEIND+AUTHORSIDENTIFIERS+ACCESSION_NUM+FUNDING+SUBJECT_CATEGORY+JCR_CATEGORY+LANG+IDS+PAGEC+SABBR+CITREFC+ISSN+PUBINFO+KEYWORDS+CITTIMES+ADDRS+CONFERENCE_SPONSORS+DOCTYPE+ABSTRACT+CONFERENCE_INFO+SOURCE+TITLE+AUTHORS++&selectedIds=1&mark_to=1&mark_from=1&queryNatural=${crawl.title}&count_new_items_marked=0&MaxDataSetLimit=&use_two_ets=false&DataSetsRemaining=&IsAtMaxLimit=&IncitesEntitled=yes&value(record_select_type)=pagerecords&markFrom=1&markTo=1&fields_selection=HIGHLY_CITED+HOT_PAPER+OPEN_ACCESS+PMID+USAGEIND+AUTHORSIDENTIFIERS+ACCESSION_NUM+FUNDING+SUBJECT_CATEGORY+JCR_CATEGORY+LANG+IDS+PAGEC+SABBR+CITREFC+ISSN+PUBINFO+KEYWORDS+CITTIMES+ADDRS+CONFERENCE_SPONSORS+DOCTYPE+ABSTRACT+CONFERENCE_INFO+SOURCE+TITLE+AUTHORS++&&&totalMarked=1`);
 				});
-			}, 50000);
+			}, 500);
 		} else if( page_type === 'detail' ) {
 			setTimeout(() => {
 				print2pdf(subWindow, crawl.title + '_detail_page.pdf', () => {
