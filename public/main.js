@@ -2,13 +2,13 @@
  * @Author:       old jia
  * @Date:                2018-09-27 00:14:10
  * @Last Modified by:   jiandandaoxingfu
- * @Last Modified time: 2020-01-12 16:41:07
+ * @Last Modified time: 2020-01-12 17:16:29
  * @Email:               jiaminxin@outlook.com
  */
 
 const { Crawl } = require('./spider.js');
 const { print2pdf } = require('./print.js');
-const {	app, BrowserWindow } = require('electron')
+const {	app, BrowserWindow. webContents } = require('electron')
 const {	Menu, MenuItem, dialog,	ipcMain } = require('electron')
 const {	appMenuTemplate } = require('./appmenu.js')
 const path = require('path')
@@ -89,7 +89,6 @@ app.on('ready', function() {
 		if( page_type === 'root' ) {
 			crawl.sid = url.match(/SID.*?&/)[0].slice(4, -1);
 		} else if( page_type === 'search_result' ) {
-			crawl.search_page(url);
 			subWindow.webContents.executeJavaScript(`
 				let len = document.querySelectorAll('div.search-results-item').length;
 				let cite_item = document.querySelector('a.snowplow-times-cited-link');
@@ -172,7 +171,6 @@ app.on('ready', function() {
 			subWindow.show();
 		}
 		subWindow_is_show = !subWindow_is_show;
-
 	});
 
 	ipcMain.on('restart', (event, message) => {
