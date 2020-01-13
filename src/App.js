@@ -103,7 +103,6 @@ class App extends React.Component {
             let last_progress_status = this.state.data[this.state.data.length - 1].progress_status;
             if( last_progress_status[1] !== 'normal' || last_progress_status[0] === 100 ) {
                 setTimeout(() => {
-                    // alert('统计完成');
                     this.state.has_send_title = false;
                     this.valid_title();
                 }, 600);

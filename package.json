@@ -2,9 +2,9 @@
   "name": "sci-info-system",
   "version": "1.0.0",
   "description": "A minimal Electron application",
-  "main": "./public/main.js",
+  "main": "./build/main.js",
   "homepage": "./",
-  "private": true,
+  "private": false,
   "devDependencies": {
     "antd": "^3.26.6",
     "babel-plugin-import": "^1.13.0",
@@ -16,6 +16,9 @@
     "react-app-rewired": "^2.1.5",
     "react-dom": "^16.11.0",
     "react-scripts": "3.2.0"
+  },
+  "dependencies": {
+    "html2canvas": "^1.0.0-rc.5"
   },
   "scripts": {
     "start": "react-app-rewired start",

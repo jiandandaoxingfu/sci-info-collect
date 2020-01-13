@@ -2,7 +2,7 @@
  * @Author:       old jia
  * @Date:                2018-09-27 00:14:10
  * @Last Modified by:   Administrator
- * @Last Modified time: 2020-01-13 19:43:37
+ * @Last Modified time: 2020-01-13 20:16:14
  * @Email:               jiaminxin@outlook.com
  */
 
@@ -189,7 +189,7 @@ function print_detail_page() {
 function create_html(img_names) {
 	let imgs = '';
 	for( let fn of img_names ) {
-		imgs += `<div><img src="./images/${fn}"/></div>`;
+		imgs += `<div><img src="../images/${fn}"/></div>`;
 	}
 	let html = `
 			<!DOCTYPE html>
@@ -213,12 +213,11 @@ function create_html(img_names) {
 
 	fs.writeFile('./public/统计汇总表.html', html, (error) => {
       	if (error) throw error
-      	subWindow.loadURL('./public/统计汇总表.html');
+      	subWindow.loadURL( path.join(__dirname, '统计汇总表.html')  )
       	setTimeout(() => {
-			print2pdf(subWindow, './file/统计汇总表.pdf', () => {
+			print2pdf(subWindow, '统计汇总表.pdf', () => {
 				mainWindow.webContents.send('print', "title_printed");
 			});
 		}, 500);
     })	
-
 }
