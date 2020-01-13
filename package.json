@@ -1,16 +1,19 @@
 {
-  "name": "sci-info-search",
+  "name": "sci-info-system",
   "version": "1.0.0",
   "description": "A minimal Electron application",
-  "main": "./public/main.js",
+  "main": "./build/main.js",
   "homepage": "./",
   "private": true,
   "dependencies": {
-    "axios": "^0.19.1",
-    "electron": "^7.1.8",
+    "antd": "^3.26.6",
+    "babel-plugin-import": "^1.13.0",
+    "customize-cra": "^0.9.1",
+    "electron": "^4.0.1",
+    "electron-packager": "^13.0.1",
     "html2canvas": "^1.0.0-rc.5",
-    "nightmare": "^3.0.2",
     "react": "^16.11.0",
+    "react-app-rewired": "^2.1.5",
     "react-dom": "^16.11.0",
     "react-scripts": "3.2.0"
   },
@@ -21,7 +24,7 @@
     "eject": "react-scripts eject",
     "deploy": "gh-pages -d build",
     "start-electron": "electron .",
-    "pack": "electron-packager ./ 科研成果统计系统 --platform=win32 --arch=x64 --icon=./sci-info-search/file/icon.ico --out=./ --asar --app-version=1.0.0"
+    "pack": "electron-packager ./ 科研成果统计系统 --platform=win32 --arch=x64 --icon=./build/icon.ico --out=./package/ --asar --app-version=1.0.0"
   },
   "eslintConfig": {
     "extends": "react-app"

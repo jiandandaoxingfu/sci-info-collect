@@ -2,11 +2,10 @@
 * @Author:             old jia
 * @Email:              jiaminxin@outlook.com
 * @Date:               2020-01-10 18:08:54
-* @Last Modified by:   jiandandaoxingfu
-* @Last Modified time: 2020-01-12 20:38:40
+* @Last Modified by:   Administrator
+* @Last Modified time: 2020-01-13 09:55:44
 */
 
-const axios = require('axios');
 const request_headers = {	
 	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8', 
 	'Accept-Encoding': 'gzip, deflate', 

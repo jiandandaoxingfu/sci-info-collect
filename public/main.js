@@ -1,8 +1,8 @@
 /*
  * @Author:       old jia
  * @Date:                2018-09-27 00:14:10
- * @Last Modified by:   jiandandaoxingfu
- * @Last Modified time: 2020-01-12 20:49:26
+ * @Last Modified by:   Administrator
+ * @Last Modified time: 2020-01-13 12:28:12
  * @Email:               jiaminxin@outlook.com
  */
 
@@ -62,16 +62,16 @@ app.on('ready', function() {
 	subWindow.webContents.on('dom-ready', (event) => {
 		let url = subWindow.webContents.getURL();
 		if( url.includes('searchErrorMessage') ) {
+			page_type = 'no_found';
 			mainWindow.webContents.send('search_page_status', 'no_found');
-			return;
-		}
-		if( page_type === 'root' ) {
+		} else if( page_type === 'root' ) {
 			crawl.sid = url.match(/SID.*?&/)[0].slice(4, -1);
 		} else if( page_type === 'search_result' ) {
 			crawl.get_search_status();
 		} else if( page_type === 'cite' ) {
 			crawl.get_cite_status();
 		} else if( page_type === 'refine' ) {
+			crawl.add_cite_tag();
 			print_cite_page();
 		} else if( page_type === 'detail' ) {
 			print_detail_page();			
@@ -154,7 +154,6 @@ app.on('window-all-closed', () => {
 })
 
 function print_cite_page() {
-	crawl.add_cite_tag();
 	page_type = 'detail';
 	setTimeout(() => {
 		print2pdf(subWindow, crawl.title + '_cite_page.pdf', () => {

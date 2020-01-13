@@ -6,62 +6,65 @@
 import React from 'react';
 import './App.css';
 import styles from './styles.js';
-import { Button, Layout, Input, Table } from 'antd';
+import { Button, Layout, Input, Table, Progress } from 'antd';
 
 const electron = window.electron;
 const { Header, Content, Footer } = Layout;
 
 const columns = [
-  {
-    title: '标题',
-    dataIndex: 'title',
-    key: 'title',
-    render: text => <span title={ text }>{ text.slice(0, 30) + '...' }</span>,
-  },
-  {
-    title: '搜索结果',
-    dataIndex: 'search_result',
-    key: 'search_result',
-  },
-  {
-    title: '总引用量',
-    dataIndex: 'cite_num',
-    key: 'cite_num',
-  },
-  {
-    title: '2018引用量',
-    dataIndex: 'cite_year_num',
-    key: 'cite_year_num',
-  },
-  {
-    title: '自引',
-    dataIndex: 'self_cite_num',
-    key: 'self_cite_num',
-  },
-  {
-    title: '他引',
-    dataIndex: 'other_cite_num',
-    key: 'other_cite_num',
-  },
-  {
-    title: '2018引用文献列表',
-    dataIndex: 'cite_page_printed',
-    key: 'cite_page_printed',
-  },
-  {
-    title: '详情页',
-    dataIndex: 'detail_page_printed',
-    key: 'detail_page_printed',
-  },
-  {
-    title: 'Action',
-    key: 'action',
-    render: (text, record) => (
-      <span>
-        <a>Delete</a>
-      </span>
-    ),
-  },
+    {
+        title: '编号',
+        dataIndex: 'id',
+        key: 'id',
+        render: id => <span>{ id }</span>,
+    },
+    {
+        title: '标题',
+        dataIndex: 'title',
+        key: 'title',
+        render: text => <span title={ text }>{ text.slice(0, 30) + '...' }</span>,
+    },
+    {
+        title: '搜索结果',
+        dataIndex: 'search_result',
+        key: 'search_result',
+    },
+    {
+        title: '总引用量',
+        dataIndex: 'cite_num',
+        key: 'cite_num',
+    },
+    {
+        title: '2018引用量',
+        dataIndex: 'cite_year_num',
+        key: 'cite_year_num',
+    },
+    {
+        title: '自引',
+        dataIndex: 'self_cite_num',
+        key: 'self_cite_num',
+    },
+    {
+        title: '他引',
+        dataIndex: 'other_cite_num',
+        key: 'other_cite_num',
+    },
+    {
+        title: '2018引用文献列表',
+        dataIndex: 'cite_page_printed',
+        key: 'cite_page_printed',
+    },
+    {
+        title: '详情页',
+        dataIndex: 'detail_page_printed',
+        key: 'detail_page_printed',
+    },
+    {
+        title: '进度',
+        dataIndex: 'progress_status',
+        key: 'progress_status',
+        render: ps => <Progress type="circle" percent={ ps[0] } width={30} status={ ps[1] }/>,
+    },
 ];
 
 class App extends React.Component {
@@ -69,11 +72,11 @@ class App extends React.Component {
         data: [],
         current_id: 0,
         title_arr: [],
+        first_render: false,
     }
 
     send_title = () => {
         this.setState({ data: [] });
-        this.message_handle();
         let title_arr = document.getElementById('title').value.replace(/，/g, ',').split(',');
         let author = document.getElementById('author').value;
         let year = document.getElementById('year').value.replace(/，/g, ',').replace(/\s/g, '').split(',');
@@ -105,12 +108,14 @@ class App extends React.Component {
         this.state.title_arr.map( (title, id) => {
             data_.push({
                 key: id + 1, 
+                id: id + 1,
                 title: title, 
                 search_result: '',
                 cite_num: '',
                 cite_year_num: '',
                 cite_page_printed: '',
                 detail_page_printed: '',
+                progress_status: [0, ""],
             })  
         })
         this.setState({
@@ -124,7 +129,7 @@ class App extends React.Component {
             if( title_arr.length - this.state.current_id === 1 ) {
                 setTimeout(() => {
                     alert('统计完成');
-                }, 200);
+                }, 600);
             } else if( !message.match(/\d/) ) {
                 this.setState({ current_id: this.state.current_id + 1 }, () => {
                     electron.ipcRenderer.send('search_title_2_main', title_arr[this.state.current_id]);
@@ -134,17 +139,24 @@ class App extends React.Component {
     }
 
     message_handle = () => {
+        if( this.state.first_render ) return;
+        this.state.first_render = true;
         electron.ipcRenderer.on('search_page_status', (event, message) => {
             let data = [...this.state.data];
             if( message === 'mutil' ) {
                 data[this.state.current_id].search_result = '不唯一';
+                data[this.state.current_id].progress_status = [25, 'exception'];
             } else if( message === 'no_cite' ) {
                 data[this.state.current_id].cite_num = 0;
+                data[this.state.current_id].progress_status = [100, ''];
             } else if( message === 'no_found' ) {
                 data[this.state.current_id].search_result = '没有找到';
+                data[this.state.current_id].progress_status = [25, 'exception'];
             } else {
                 data[this.state.current_id].cite_num = message;
+                data[this.state.current_id].progress_status = [25, ''];
             }
+            
             this.update_and_load(data, message);
         })
 
@@ -152,8 +164,10 @@ class App extends React.Component {
             let data = [...this.state.data];
             if( message === 'no_2018_cite' ) {
                 data[this.state.current_id].cite_year_num = '0';
+                data[this.state.current_id].progress_status = [100, ''];
             } else {
                 data[this.state.current_id].cite_year_num = message;
+                data[this.state.current_id].progress_status = [50, ''];
             }
             this.update_and_load(data, message);
         })
@@ -169,13 +183,14 @@ class App extends React.Component {
             let data = [...this.state.data];
             if( message === 'cite_page_printed' ) {
                 data[this.state.current_id].cite_page_printed = '已打印';
+                data[this.state.current_id].progress_status = [75, '']
                 this.update_and_load(data, '1');
             } else {
                 data[this.state.current_id].detail_page_printed = '已打印';
+                data[this.state.current_id].progress_status = [100, '']
                 this.update_and_load(data, '');
             }
         })
-
     }
 
     render() {
@@ -193,6 +208,7 @@ class App extends React.Component {
                     <Table columns={columns} dataSource={ this.state.data } style={ styles.table } pagination={ false }/>
                 </Content>
                 <Footer style = { styles.footer }>
+                    { this.message_handle() }
             		©2020 Created by JMx. <a href='https://github.com/jiandandaoxingfu'>github</a><br />
                 </Footer>
 
