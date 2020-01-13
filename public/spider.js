@@ -3,7 +3,7 @@
 * @Email:              jiaminxin@outlook.com
 * @Date:               2020-01-10 18:08:54
 * @Last Modified by:   Administrator
-* @Last Modified time: 2020-01-13 09:55:44
+* @Last Modified time: 2020-01-13 15:23:34
 */
 
 const request_headers = {	
@@ -64,7 +64,7 @@ class Crawl {
 		`)
 	}
 
-	add_cite_tag(win) {
+	add_cite_tag() {
 		this.win.webContents.executeJavaScript(`
 			let self_cite_num = 0, other_cite_num = 0;
 			for( let div of document.querySelectorAll('div.search-results-item') ) {

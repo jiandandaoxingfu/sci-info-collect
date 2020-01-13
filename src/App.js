@@ -72,12 +72,18 @@ class App extends React.Component {
         data: [],
         current_id: 0,
         title_arr: [],
-        first_render: false,
+        has_listen_message: false,
+        has_send_title: false
     }
 
     send_title = () => {
-        this.setState({ data: [] });
-        let title_arr = document.getElementById('title').value.replace(/，/g, ',').split(',');
+        if( this.state.has_send_title ) {
+            alert('请重新启动或者等待任务完成');
+            return;
+        }
+        this.setState({ data: [], current_id: 0 });
+        this.message_handle();
+        let title_arr = document.getElementById('title').value.replace(/，/g, ',').split(',').map( d => d.replace(/(^\s*)/, '') );
         let author = document.getElementById('author').value;
         let year = document.getElementById('year').value.replace(/，/g, ',').replace(/\s/g, '').split(',');
         if( title_arr[0] === "" || author === '' || year[0] === "") {
@@ -87,11 +93,15 @@ class App extends React.Component {
         this.setState( { title_arr: title_arr }, () => {
             this.change_data();
         });
-        electron.ipcRenderer.send('search_title_2_main', title_arr[0]);
+        electron.ipcRenderer.send('search_title_2_main', {
+            title: title_arr[0], 
+            id: 1,
+        });
         electron.ipcRenderer.send('selection', {
             author: author,
             year: year,
         });
+        this.state.has_send_title = true;
     }
     
     show_subWindow = () => {
@@ -115,7 +125,7 @@ class App extends React.Component {
                 cite_year_num: '',
                 cite_page_printed: '',
                 detail_page_printed: '',
-                progress_status: [0, ""],
+                progress_status: [0, "normal"],
             })  
         })
         this.setState({
@@ -126,21 +136,26 @@ class App extends React.Component {
     update_and_load = (data, message) => {
         this.setState({ data: data }, () => {
             let title_arr = this.state.title_arr;
-            if( title_arr.length - this.state.current_id === 1 ) {
+            let last_progress_status = this.state.data[this.state.data.length - 1].progress_status;
+            if( last_progress_status[1] !== 'normal' || last_progress_status[0] === 100 ) {
                 setTimeout(() => {
                     alert('统计完成');
+                    this.state.has_send_title = false;
                 }, 600);
             } else if( !message.match(/\d/) ) {
                 this.setState({ current_id: this.state.current_id + 1 }, () => {
-                    electron.ipcRenderer.send('search_title_2_main', title_arr[this.state.current_id]);
+                    electron.ipcRenderer.send('search_title_2_main', {
+                        title: title_arr[this.state.current_id], 
+                        id: this.state.current_id + 1,
+                    });
                 })                    
             }
         });
     }
 
     message_handle = () => {
-        if( this.state.first_render ) return;
-        this.state.first_render = true;
+        if( this.state.has_listen_message ) return;
+        this.state.has_listen_message = true;
         electron.ipcRenderer.on('search_page_status', (event, message) => {
             let data = [...this.state.data];
             if( message === 'mutil' ) {
@@ -148,15 +163,14 @@ class App extends React.Component {
                 data[this.state.current_id].progress_status = [25, 'exception'];
             } else if( message === 'no_cite' ) {
                 data[this.state.current_id].cite_num = 0;
-                data[this.state.current_id].progress_status = [100, ''];
+                data[this.state.current_id].progress_status = [100, 'success '];
             } else if( message === 'no_found' ) {
                 data[this.state.current_id].search_result = '没有找到';
                 data[this.state.current_id].progress_status = [25, 'exception'];
             } else {
                 data[this.state.current_id].cite_num = message;
-                data[this.state.current_id].progress_status = [25, ''];
+                data[this.state.current_id].progress_status = [25, 'normal'];
             }
-            
             this.update_and_load(data, message);
         })
 
@@ -164,10 +178,10 @@ class App extends React.Component {
             let data = [...this.state.data];
             if( message === 'no_2018_cite' ) {
                 data[this.state.current_id].cite_year_num = '0';
-                data[this.state.current_id].progress_status = [100, ''];
+                data[this.state.current_id].progress_status = [100, 'success '];
             } else {
                 data[this.state.current_id].cite_year_num = message;
-                data[this.state.current_id].progress_status = [50, ''];
+                data[this.state.current_id].progress_status = [50, 'normal'];
             }
             this.update_and_load(data, message);
         })
@@ -176,6 +190,7 @@ class App extends React.Component {
             let data = [...this.state.data];
             data[this.state.current_id].self_cite_num = message.self_cite_num;
             data[this.state.current_id].other_cite_num = message.other_cite_num;
+            console.log(message);
             this.update_and_load(data, '1');
         })
 
@@ -183,11 +198,11 @@ class App extends React.Component {
             let data = [...this.state.data];
             if( message === 'cite_page_printed' ) {
                 data[this.state.current_id].cite_page_printed = '已打印';
-                data[this.state.current_id].progress_status = [75, '']
+                data[this.state.current_id].progress_status = [75, 'normal']
                 this.update_and_load(data, '1');
             } else {
                 data[this.state.current_id].detail_page_printed = '已打印';
-                data[this.state.current_id].progress_status = [100, '']
+                data[this.state.current_id].progress_status = [100, 'success ']
                 this.update_and_load(data, '');
             }
         })
@@ -199,7 +214,7 @@ class App extends React.Component {
                 <Header style = { styles.header }>
             	    <Input placeholder="输入文章标题，多篇以逗号隔开" style = { styles.input_title } id='title'/>
                     <Input placeholder="统计年份" style = { styles.input_year } id='year'/>
-                    <Input placeholder="作者姓名：如 Liu-Yi-Fei" style = { styles.input_author } id='author'/>
+                    <Input placeholder="作者姓名：如 Chen-Jing-Run" style = { styles.input_author } id='author'/>
             	    <Button type='primary' style={ styles.button } onClick={ this.send_title } >开始统计</Button>
             	    <Button type='primary' style={ styles.button } onClick={ this.show_subWindow } >显示后台</Button>
             	    <Button type='primary' style={ styles.button } onClick={ this.restart }>重新启动</Button>
@@ -208,10 +223,8 @@ class App extends React.Component {
                     <Table columns={columns} dataSource={ this.state.data } style={ styles.table } pagination={ false }/>
                 </Content>
                 <Footer style = { styles.footer }>
-                    { this.message_handle() }
-            		©2020 Created by JMx. <a href='https://github.com/jiandandaoxingfu'>github</a><br />
+            		©2020 Created by JMx. <a href='javascript: electron.shell.openExternal("https://github.com/jiandandaoxingfu/sci-info-collect/blob/master/README.md")' >帮助</a><br />
                 </Footer>
-
             </Layout>
         );
     }

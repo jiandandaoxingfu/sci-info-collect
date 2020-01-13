@@ -2,7 +2,7 @@
   "name": "sci-info-system",
   "version": "1.0.0",
   "description": "A minimal Electron application",
-  "main": "./build/main.js",
+  "main": "./public/main.js",
   "homepage": "./",
   "private": true,
   "devDependencies": {

@@ -24,7 +24,7 @@ const styles = {
 
     input_author: {
         margin: '0, 30px',
-        width: '180px',
+        width: '220px',
         marginRight: '25px',
     },
 
