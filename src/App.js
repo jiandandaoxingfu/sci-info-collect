@@ -135,7 +135,6 @@ class App extends React.Component {
                 data[this.state.current_id].progress_status = [25, 'exception'];
             } else {
                 data[this.state.current_id].search_result = '是';
-                data[this.state.current_id].cite_num = message;
                 data[this.state.current_id].progress_status = [25, 'normal'];
             }
             this.update_and_load(data, message);
@@ -147,7 +146,7 @@ class App extends React.Component {
                 data[this.state.current_id].cite_num = '0';
                 data[this.state.current_id].progress_status = [100, 'success '];
             } else {
-                data[this.state.current_id].cite_year_num = message;
+                data[this.state.current_id].cite_num = message;
                 data[this.state.current_id].progress_status = [50, 'normal'];
             }
             this.update_and_load(data, message);
