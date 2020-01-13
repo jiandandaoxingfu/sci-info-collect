@@ -3,7 +3,7 @@
 * @Email:              jiaminxin@outlook.com
 * @Date:               2020-01-10 18:08:54
 * @Last Modified by:   Administrator
-* @Last Modified time: 2020-01-13 15:23:34
+* @Last Modified time: 2020-01-13 16:13:37
 */
 
 const request_headers = {	
@@ -50,7 +50,7 @@ class Crawl {
 	get_cite_status() {
 		this.win.webContents.executeJavaScript(`
 			let has_2018 = document.getElementById('PublicationYear_tr').innerHTML.includes('PublicationYear_2018');
-			let error = 'no_2018_cite';
+			let error = 'no_cite';
 			if( has_2018 ) {
 				let inputs = document.getElementById('PublicationYear_tr').getElementsByTagName('input');
 				for( let input of inputs ) {

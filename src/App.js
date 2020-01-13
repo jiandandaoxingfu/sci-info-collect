@@ -11,69 +11,34 @@ import { Button, Layout, Input, Table, Progress } from 'antd';
 const electron = window.electron;
 const { Header, Content, Footer } = Layout;
 
-const columns = [
-    {
-        title: '编号',
-        dataIndex: 'id',
-        key: 'id',
-        render: id => <span>{ id }</span>,
-    },
-    {
-        title: '标题',
-        dataIndex: 'title',
-        key: 'title',
-        render: text => <span title={ text }>{ text.slice(0, 30) + '...' }</span>,
-    },
-    {
-        title: '搜索结果',
-        dataIndex: 'search_result',
-        key: 'search_result',
-    },
-    {
-        title: '总引用量',
-        dataIndex: 'cite_num',
-        key: 'cite_num',
-    },
-    {
-        title: '2018引用量',
-        dataIndex: 'cite_year_num',
-        key: 'cite_year_num',
-    },
-    {
-        title: '自引',
-        dataIndex: 'self_cite_num',
-        key: 'self_cite_num',
-    },
-    {
-        title: '他引',
-        dataIndex: 'other_cite_num',
-        key: 'other_cite_num',
-    },
-    {
-        title: '2018引用文献列表',
-        dataIndex: 'cite_page_printed',
-        key: 'cite_page_printed',
-    },
-    {
-        title: '详情页',
-        dataIndex: 'detail_page_printed',
-        key: 'detail_page_printed',
-    },
-    {
-        title: '进度',
-        dataIndex: 'progress_status',
-        key: 'progress_status',
-        render: ps => <Progress type="circle" percent={ ps[0] } width={30} status={ ps[1] }/>,
-    },
-];
-
 class App extends React.Component {
     state = {
         data: [],
         current_id: 0,
         title_arr: [],
         has_listen_message: false,
-        has_send_title: false
+        has_send_title: false, 
+        columns: [
+            {   
+                title: '编号',    dataIndex: 'id',    key: 'id',  render: id => <span>{ id }</span>,
+            }, {   
+                title: '标题',   dataIndex: 'title',    key: 'title',   render: text => <span title={ text }>{ text.slice(0, 30) + '...' }</span>,
+            }, {   
+                title: '标题是否精确', dataIndex: 'search_result',  key: 'search_result',
+            }, {   
+                title: '引用量', dataIndex: 'cite_num',   key: 'cite_num',
+            }, {   
+                title: '自引',   dataIndex: 'self_cite_num',    key: 'self_cite_num',
+            }, {   
+                title: '他引',   dataIndex: 'other_cite_num',   key: 'other_cite_num',
+            }, {   
+                title: `打印引用文献列表`,   dataIndex: 'cite_page_printed',    key: 'cite_page_printed',
+            }, {   
+                title: '打印详情页',  dataIndex: 'detail_page_printed', key: 'detail_page_printed',
+            }, {   
+                title: '进度',   dataIndex: 'progress_status',  key: 'progress_status',   render: ps => <Progress type="circle" percent={ ps[0] } width={30} status={ ps[1] }/>,
+            },
+        ]
     }
 
     send_title = () => {
@@ -122,7 +87,6 @@ class App extends React.Component {
                 title: title, 
                 search_result: '',
                 cite_num: '',
-                cite_year_num: '',
                 cite_page_printed: '',
                 detail_page_printed: '',
                 progress_status: [0, "normal"],
@@ -159,15 +123,18 @@ class App extends React.Component {
         electron.ipcRenderer.on('search_page_status', (event, message) => {
             let data = [...this.state.data];
             if( message === 'mutil' ) {
-                data[this.state.current_id].search_result = '不唯一';
+                data[this.state.current_id].search_result = '否';
                 data[this.state.current_id].progress_status = [25, 'exception'];
             } else if( message === 'no_cite' ) {
+                data[this.state.current_id].search_result = '是';
                 data[this.state.current_id].cite_num = 0;
                 data[this.state.current_id].progress_status = [100, 'success '];
             } else if( message === 'no_found' ) {
+                data[this.state.current_id].search_result = '否';
                 data[this.state.current_id].search_result = '没有找到';
                 data[this.state.current_id].progress_status = [25, 'exception'];
             } else {
+                data[this.state.current_id].search_result = '是';
                 data[this.state.current_id].cite_num = message;
                 data[this.state.current_id].progress_status = [25, 'normal'];
             }
@@ -176,8 +143,8 @@ class App extends React.Component {
 
         electron.ipcRenderer.on('cite_page_status', (event, message) => {
             let data = [...this.state.data];
-            if( message === 'no_2018_cite' ) {
-                data[this.state.current_id].cite_year_num = '0';
+            if( message === 'no_cite' ) {
+                data[this.state.current_id].cite_num = '0';
                 data[this.state.current_id].progress_status = [100, 'success '];
             } else {
                 data[this.state.current_id].cite_year_num = message;
@@ -213,14 +180,14 @@ class App extends React.Component {
             <Layout style = { styles.layout }>
                 <Header style = { styles.header }>
             	    <Input placeholder="输入文章标题，多篇以逗号隔开" style = { styles.input_title } id='title'/>
-                    <Input placeholder="统计年份" style = { styles.input_year } id='year'/>
+                    <Input placeholder="筛选年份" style = { styles.input_year } id='year'/>
                     <Input placeholder="作者姓名：如 Chen-Jing-Run" style = { styles.input_author } id='author'/>
             	    <Button type='primary' style={ styles.button } onClick={ this.send_title } >开始统计</Button>
             	    <Button type='primary' style={ styles.button } onClick={ this.show_subWindow } >显示后台</Button>
             	    <Button type='primary' style={ styles.button } onClick={ this.restart }>重新启动</Button>
                 </Header>
 			    <Content> 
-                    <Table columns={columns} dataSource={ this.state.data } style={ styles.table } pagination={ false }/>
+                    <Table columns={ this.state.columns } dataSource={ this.state.data } style={ styles.table } pagination={ false }/>
                 </Content>
                 <Footer style = { styles.footer }>
             		©2020 Created by JMx. <a href='javascript: electron.shell.openExternal("https://github.com/jiandandaoxingfu/sci-info-collect/blob/master/README.md")' >帮助</a><br />
