@@ -2,17 +2,18 @@
  * @Author:       old jia
  * @Date:                2018-09-27 00:14:10
  * @Last Modified by:   Administrator
- * @Last Modified time: 2020-01-13 15:24:05
+ * @Last Modified time: 2020-01-13 18:29:30
  * @Email:               jiaminxin@outlook.com
  */
 
 const { Crawl } = require('./spider.js');
+// const { html2png } = require('./html2png.js');
 const { print2pdf } = require('./print.js');
 const {	app, BrowserWindow, webContents } = require('electron')
 const {	Menu, MenuItem, dialog,	ipcMain } = require('electron')
 const {	appMenuTemplate } = require('./appmenu.js')
 const path = require('path')
-
+const fs = require('fs');
 
 let mainWindow, subWindow, page_type, subWindow_is_show = false;
 let year, author;
@@ -107,14 +108,21 @@ app.on('ready', function() {
 	});
 
 	ipcMain.on('search_page_status', (event, message) => {
-		mainWindow.webContents.send('search_page_status', message.error);
 		page_type = 'not_cite';
 		crawl.qid = message.qid;
-		if( message.error.match(/\d/) ) {
+		if( message.error[0] === 'd' ) {
+			mainWindow.webContents.send('search_page_status', '10');
 			page_type = 'cite';
-			subWindow.webContents.executeJavaScript(`
-				document.querySelector('a.snowplow-times-cited-link').click();
-			`)
+			let base64Data = message.error.replace(/^data:image\/\w+;base64,/, "");
+    		let dataBuffer = new Buffer.alloc(100000, base64Data, 'base64'); // 解码图片
+    		fs.writeFile('./images/' + `${crawl.id}_search_${crawl.title}.png`, dataBuffer, (error) => {
+      			if (error) throw error
+      			subWindow.webContents.executeJavaScript(`
+						document.querySelector('a.snowplow-times-cited-link').click();
+				`)
+    		})	
+		} else {
+			mainWindow.webContents.send('search_page_status', message.error);
 		}
 	})
 

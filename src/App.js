@@ -24,7 +24,7 @@ class App extends React.Component {
             }, {   
                 title: '标题',   dataIndex: 'title',    key: 'title',   render: text => <span title={ text }>{ text.slice(0, 30) + '...' }</span>,
             }, {   
-                title: '标题是否精确', dataIndex: 'search_result',  key: 'search_result',
+                title: '截图', dataIndex: 'search_result',  key: 'search_result',
             }, {   
                 title: '引用量', dataIndex: 'cite_num',   key: 'cite_num',
             }, {   
@@ -123,18 +123,17 @@ class App extends React.Component {
         electron.ipcRenderer.on('search_page_status', (event, message) => {
             let data = [...this.state.data];
             if( message === 'mutil' ) {
-                data[this.state.current_id].search_result = '否';
+                data[this.state.current_id].search_result = '标题不精确';
                 data[this.state.current_id].progress_status = [25, 'exception'];
             } else if( message === 'no_cite' ) {
-                data[this.state.current_id].search_result = '是';
+                data[this.state.current_id].search_result = '引用量为0';
                 data[this.state.current_id].cite_num = 0;
                 data[this.state.current_id].progress_status = [100, 'success '];
             } else if( message === 'no_found' ) {
-                data[this.state.current_id].search_result = '否';
                 data[this.state.current_id].search_result = '没有找到';
                 data[this.state.current_id].progress_status = [25, 'exception'];
             } else {
-                data[this.state.current_id].search_result = '是';
+                data[this.state.current_id].search_result = '已截图';
                 data[this.state.current_id].progress_status = [25, 'normal'];
             }
             this.update_and_load(data, message);

@@ -3,7 +3,7 @@
 * @Email:              jiaminxin@outlook.com
 * @Date:               2020-01-10 18:08:54
 * @Last Modified by:   Administrator
-* @Last Modified time: 2020-01-13 16:13:37
+* @Last Modified time: 2020-01-13 18:16:32
 */
 
 const request_headers = {	
@@ -35,15 +35,18 @@ class Crawl {
 			let cite_item = document.querySelector('a.snowplow-times-cited-link');
 			let error;
 			if( len > 1 ) {
-				error = 'mutil';	
+				window.electron.ipcRenderer.send("search_page_status", { error: 'mutil', qid: qid });
 			} else if( len === 1 && !cite_item ) {
-				error = 'no_cite';
+				window.electron.ipcRenderer.send("search_page_status", { error: 'no_cite', qid: qid });
 			} else if( len === 0 ){
-				error = 'no_found';
+				window.electron.ipcRenderer.send("search_page_status", { error: 'no_found', qid: qid });
 			} else if( len === 1 && cite_item ){
-				error = cite_item.text;
+				let search_item = document.getElementById('RECORD_1');
+				html2canvas(search_item).then( canvas => {
+					window.electron.ipcRenderer.send("search_page_status", { error: canvas.toDataURL("image/png"), qid: qid });
+				});
+
 			}
-			window.electron.ipcRenderer.send("search_page_status", { error: error, qid: qid});
 		`)
 	}
 
