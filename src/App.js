@@ -103,8 +103,9 @@ class App extends React.Component {
             let last_progress_status = this.state.data[this.state.data.length - 1].progress_status;
             if( last_progress_status[1] !== 'normal' || last_progress_status[0] === 100 ) {
                 setTimeout(() => {
-                    alert('统计完成');
+                    // alert('统计完成');
                     this.state.has_send_title = false;
+                    this.valid_title();
                 }, 600);
             } else if( !message.match(/\d/) ) {
                 this.setState({ current_id: this.state.current_id + 1 }, () => {
@@ -165,12 +166,26 @@ class App extends React.Component {
                 data[this.state.current_id].cite_page_printed = '已打印';
                 data[this.state.current_id].progress_status = [75, 'normal']
                 this.update_and_load(data, '1');
-            } else {
+            } else if( message === 'detail_page_printed' ){
                 data[this.state.current_id].detail_page_printed = '已打印';
                 data[this.state.current_id].progress_status = [100, 'success ']
                 this.update_and_load(data, '');
+            } else {
+                alert('统计完成');
             }
         })
+    }
+
+    valid_title() {
+        let title_arr = [];
+        for( let data of this.state.data ) {
+            if( data.cite_num !== '0' || data.cite_num !== '' ) {
+                title_arr.push(data.id + '_search_' + data.title + '.png');
+            }
+        }
+        if( title_arr.length ) {
+            electron.ipcRenderer.send('valid_title', title_arr);
+        }
     }
 
     render() {

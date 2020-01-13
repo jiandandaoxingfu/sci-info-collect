@@ -2,7 +2,7 @@
  * @Author:       old jia
  * @Date:                2018-09-27 00:14:10
  * @Last Modified by:   Administrator
- * @Last Modified time: 2020-01-13 18:29:30
+ * @Last Modified time: 2020-01-13 19:43:37
  * @Email:               jiaminxin@outlook.com
  */
 
@@ -141,6 +141,10 @@ app.on('ready', function() {
 		mainWindow.webContents.send('cite_num', message);
 	})
 
+	ipcMain.on('valid_title', (event, message) => {
+		create_html(message);
+	})
+
 	ipcMain.on('show_subWindow', (event, message) => {
 		if( subWindow_is_show ) {
 			subWindow.hide()
@@ -180,4 +184,41 @@ function print_detail_page() {
 			mainWindow.webContents.send('print', "detail_page_printed");
 		});
 	}, 500);
+}
+
+function create_html(img_names) {
+	let imgs = '';
+	for( let fn of img_names ) {
+		imgs += `<div><img src="./images/${fn}"/></div>`;
+	}
+	let html = `
+			<!DOCTYPE html>
+			<html lang="en">
+  			<head>
+    			<meta charset="utf-8" />
+    			<style>
+					div {
+						text-align: center;
+						margin: 50px auto;
+					}
+    			</style>
+    			<title>统计汇总</title>
+  			</head>
+  			<body>
+    			${imgs}
+  			</body>
+			</html>
+
+	`;
+
+	fs.writeFile('./public/统计汇总表.html', html, (error) => {
+      	if (error) throw error
+      	subWindow.loadURL('./public/统计汇总表.html');
+      	setTimeout(() => {
+			print2pdf(subWindow, './file/统计汇总表.pdf', () => {
+				mainWindow.webContents.send('print', "title_printed");
+			});
+		}, 500);
+    })	
+
 }
