@@ -1,8 +1,8 @@
 /*
  * @Author:       old jia
  * @Date:                2018-09-27 00:14:10
- * @Last Modified by:   Administrator
- * @Last Modified time: 2020-01-13 20:16:14
+ * @Last Modified by:   old jia
+ * @Last Modified time: 2020-01-14 22:47:55
  * @Email:               jiaminxin@outlook.com
  */
 
@@ -23,6 +23,7 @@ let crawl = new Crawl();
 
 app.on('ready', function() {
 	mainWindow = new BrowserWindow({
+		title: '科研成果统计系统',
 		width: 1200,
 		height: 600,
 		show: false,
