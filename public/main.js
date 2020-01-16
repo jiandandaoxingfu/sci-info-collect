@@ -2,16 +2,15 @@
  * @Author:       old jia
  * @Date:                2018-09-27 00:14:10
  * @Last Modified by:   old jia
- * @Last Modified time: 2020-01-14 22:47:55
+ * @Last Modified time: 2020-01-16 13:32:38
  * @Email:               jiaminxin@outlook.com
  */
 
 const { Crawl } = require('./spider.js');
-// const { html2png } = require('./html2png.js');
 const { print2pdf } = require('./print.js');
-const {	app, BrowserWindow, webContents } = require('electron')
+const { appMenuTemplate } = require('./appmenu.js');
+const {	app, BrowserWindow, webContents, window } = require('electron')
 const {	Menu, MenuItem, dialog,	ipcMain } = require('electron')
-const {	appMenuTemplate } = require('./appmenu.js')
 const path = require('path')
 const fs = require('fs');
 
@@ -37,12 +36,35 @@ app.on('ready', function() {
 	})
 	mainWindow.maximize()
 
-	mainWindow.loadURL('http://localhost:3000/')
+	mainWindow.loadURL('https://jiandandaoxingfu.github.io/sci-info-collect/')
+	// mainWindow.loadURL('http://localhost:3000/')
 	mainWindow.on('closed', () => {
 		app.quit()
 	})
 	const menu = Menu.buildFromTemplate(appMenuTemplate)
 	Menu.setApplicationMenu(menu);
+
+
+	dialog.showMessageBox({
+		title: '提示',
+		type: 'info',
+		message: '正在从github获取最新程序，请稍后...',
+		cancelId: '1'
+	})
+
+	let option = {
+        title: '通知标题', body: '通知内容', icon: '通知图标的路径'
+    }
+    let notification = BrowserWindow.open();
+
+	mainWindow.webContents.on('dom-ready', (event) => {
+		dialog.showMessageBox({
+			title: '提示',
+			type: 'info',
+			message: 'done',
+			cancelId: '2'
+		})
+	})
 
 	subWindow = new BrowserWindow({
 		width: 1200,
@@ -67,7 +89,15 @@ app.on('ready', function() {
 			page_type = 'no_found';
 			mainWindow.webContents.send('search_page_status', 'no_found');
 		} else if( page_type === 'root' ) {
-			crawl.sid = url.match(/SID.*?&/)[0].slice(4, -1);
+			try {
+				crawl.sid = url.match(/SID.*?&/)[0].slice(4, -1);
+			} catch(e) {
+				dialog.showMessageBox({
+   					title  : '错误' , 
+   					type  : 'error',
+   					message : '请检查是否有登录Web of Science的权限'
+ 				})
+			}
 		} else if( page_type === 'search_result' ) {
 			crawl.get_search_status();
 		} else if( page_type === 'cite' ) {
