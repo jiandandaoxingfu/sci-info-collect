@@ -6,21 +6,17 @@
   "homepage": "./",
   "private": false,
   "devDependencies": {
-    "antd": "^3.26.6",
-    "babel-plugin-import": "^1.13.0",
-    "customize-cra": "^0.9.1",
     "react": "^16.11.0",
-    "react-app-rewired": "^2.1.5",
     "react-dom": "^16.11.0",
-    "electron-packager": "^14.2.0",
-    "electron": "^7.1.9",
-    "react-scripts": "3.2.0"
+    "react-scripts": "3.2.0",
+    "antd": "^3.26.6",
+    "react-app-rewired": "^2.1.5",
+    "customize-cra": "^0.9.1",
+    "babel-plugin-import": "^1.13.0"
   },
-  "dependencies": {
-    "html2canvas": "^1.0.0-rc.5"
-  },
+
   "scripts": {
-    "react": "react-app-rewired start",
+    "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",

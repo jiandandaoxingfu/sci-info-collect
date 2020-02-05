@@ -28,9 +28,9 @@ const styles = {
         marginRight: '25px',
     },
 
-    table: {
-        height: '600px',
-        overflow: 'scroll',
+    container: {
+        height: '100%',
+        width: '100%'
     },
 
     footer: {
