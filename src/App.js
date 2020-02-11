@@ -6,11 +6,9 @@
 import React from 'react';
 import './App.css';
 import styles from './styles.js';
-import { Button, Layout, Input, Table, Progress, InputNumber } from 'antd';
+import { Button, Layout, Input, InputNumber, Tooltip  } from 'antd';
 
 const { Header, Content, Footer } = Layout;
-
-const electron = window.electron;
 
 class App extends React.Component {
     render() {
@@ -21,7 +19,9 @@ class App extends React.Component {
                     <Input placeholder="筛选年份" style = { styles.input_year } id='year'/>
                     <Input placeholder="作者姓名：如 Chen-Jing-Run" style = { styles.input_author } id='author'/>
                     <span style = { {fontSize: '15px', color: 'rgba(0, 0, 0, 0.3)'} }>最大下载数： </span>
-                    <InputNumber min={1} max={5} defaultValue={3} id="threads"/>
+                    <Tooltip title="最大下载数越大，打开的窗口越多，因此需要视计算机性能而定(1～10)。">
+                        <InputNumber min={1} max={10} defaultValue={3} id="threads"/>
+                    </Tooltip>
             	    <Button type='primary' style={ styles.button } >开始统计</Button>
             	    <Button type='primary' style={ styles.button } >重新启动</Button>
                 </Header>
